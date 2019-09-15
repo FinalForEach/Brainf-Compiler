@@ -90,14 +90,16 @@ void interpret(std::string& inputStr)
 			case '+':data[dataIndex]+=1;break;
 			case '-':data[dataIndex]-=1;break;
 			
-			case '.': std::cout<<data[dataIndex]; break;
+			case '.': std::cout<<data[dataIndex]<<" "; break;
 			case ',':break;
 			
+			//Brackets switch index to next/prev bracket,
+			//which is incremented by one by forloop
 			case '[':
-			if(data[dataIndex]==0)dataIndex=nextBracketMap[i];
+			if(data[dataIndex]==0)i=nextBracketMap[i];
 			break;
 			case ']':
-			if(data[dataIndex]!=0)dataIndex=prevBracketMap[i];
+			if(data[dataIndex]!=0)i=prevBracketMap[i];
 			break;
 		}
 	}
