@@ -3,6 +3,8 @@
 #include <fstream>
 #include <cstdlib>
 
+#include "Interpreter.hpp"
+
 #define DEBUG 
 int main(int argc, char **argv) 
 {
@@ -35,7 +37,31 @@ int main(int argc, char **argv)
 	
 	exit(EXIT_SUCCESS);
 }
+
+
+
 void interpret(std::string& inputStr)
 {
-	
+	unsigned int data[30000];
+	unsigned int *dataPointer = data;
+	for(int i=0;i<inputStr.length();i++)
+	{
+		char instruction = inputStr[i];
+		//std::cout<<"["<<i<<"]:"<<instruction<<"\n";
+		
+		switch(instruction)
+		{
+			case '>':break;
+			case '<':break;
+			
+			case '+':break;
+			case '-':break;
+			
+			case '.': std::cout<<*dataPointer; break;
+			case ',':break;
+			
+			case '[':break;
+			case ']':break;
+		}
+	}
 }

@@ -3,11 +3,13 @@ TEST_FOLDER = ../test-programs
 
 INTERPRETER = $(BIN_FOLDER)/interpreter
 
+STD_VER = c++17
+
 all: INTERPRETER
 
 
 INTERPRETER:
-	$(CXX) *.cpp -o $(INTERPRETER)
+	$(CXX) *.cpp -o $(INTERPRETER) -std=$(STD_VER)
 	
 	
 test-helloworld: INTERPRETER
