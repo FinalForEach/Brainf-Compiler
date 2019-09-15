@@ -8,7 +8,7 @@
 
 #include "Interpreter.hpp"
 
-#define DEBUG 
+//#define DEBUG 
 int main(int argc, char **argv) 
 {
 	if(argc<=1)
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 void interpret(std::string& inputStr)
 {
 	unsigned int tapeSize = 30000;
-	unsigned int data[tapeSize];
+	int data[tapeSize];
 	unsigned int dataIndex = 0;
 	
 	std::map<int,int> nextBracketMap;

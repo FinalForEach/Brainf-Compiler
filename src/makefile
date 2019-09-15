@@ -15,7 +15,13 @@ INTERPRETER:
 test-helloworld: INTERPRETER
 	$(INTERPRETER) $(TEST_FOLDER)/Hello\ World
 	
+test-hellocomplex: INTERPRETER
+	$(INTERPRETER) $(TEST_FOLDER)/Hello\ World\ Complex
+	
 test-cat0: INTERPRETER
 	$(INTERPRETER) $(TEST_FOLDER)/Cat0
+	
+test-cellsize: INTERPRETER
+	$(INTERPRETER) $(TEST_FOLDER)/Cell\ Size
 clean:
 	rm -rf $(INTERPRETER)
