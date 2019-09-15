@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <map>
+#include <vector>
 
 #include "Interpreter.hpp"
 
@@ -42,26 +44,61 @@ int main(int argc, char **argv)
 
 void interpret(std::string& inputStr)
 {
-	unsigned int data[30000];
-	unsigned int *dataPointer = data;
+	unsigned int tapeSize = 30000;
+	unsigned int data[tapeSize];
+	unsigned int dataIndex = 0;
+	
+	std::map<int,int> nextBracketMap;
+	std::map<int,int> prevBracketMap;
+	
+	//Parse brackets
+	std::vector<int> openingBrackets;
 	for(int i=0;i<inputStr.length();i++)
 	{
 		char instruction = inputStr[i];
-		//std::cout<<"["<<i<<"]:"<<instruction<<"\n";
-		
+
 		switch(instruction)
 		{
-			case '>':break;
-			case '<':break;
+			case '[':
+			openingBrackets.push_back(i);
+			break;
+			case ']':
+			int openValue = openingBrackets.back();
+			nextBracketMap[openValue]=i;
+			prevBracketMap[i]=openValue;
+			openingBrackets.pop_back();
+			break;
+		}
+	}
+	
+	//Interpret
+	for(int i=0;i<inputStr.length();i++)
+	{
+		char instruction = inputStr[i];
+
+		switch(instruction)
+		{
+			case '>':
+			dataIndex+=1;
+			if(dataIndex>=tapeSize)dataIndex=0;
+			break;
+			case '<':
+			dataIndex-=1;
+			if(dataIndex<0)dataIndex=tapeSize-1;
+			break;
 			
-			case '+':break;
-			case '-':break;
+			case '+':data[dataIndex]+=1;break;
+			case '-':data[dataIndex]-=1;break;
 			
-			case '.': std::cout<<*dataPointer; break;
+			case '.': std::cout<<data[dataIndex]; break;
 			case ',':break;
 			
-			case '[':break;
-			case ']':break;
+			case '[':
+			if(data[dataIndex]==0)dataIndex=nextBracketMap[i];
+			break;
+			case ']':
+			if(data[dataIndex]!=0)dataIndex=prevBracketMap[i];
+			break;
 		}
 	}
 }
