@@ -15,6 +15,7 @@ INTERPRETER:
 test-helloworld: INTERPRETER
 	$(INTERPRETER) $(TEST_FOLDER)/Hello\ World
 	
-	
+test-cat0: INTERPRETER
+	$(INTERPRETER) $(TEST_FOLDER)/Cat0
 clean:
 	rm -rf $(INTERPRETER)

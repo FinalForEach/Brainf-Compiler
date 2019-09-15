@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cstdlib>
 #include <map>
 #include <vector>
@@ -27,8 +28,12 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 	
+	std::stringstream strStream;
+	strStream << inputFile.rdbuf();
+	
 	std::string inputStr;
-	inputFile >> inputStr;
+	inputStr = strStream.str();
+	
 	inputFile.close();
 	#ifdef DEBUG
 	std::cout<<"Loading file: "<<filename<<"\n";
