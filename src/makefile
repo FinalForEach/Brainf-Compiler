@@ -8,8 +8,12 @@ STD_VER = c++17
 all: INTERPRETER
 
 
-INTERPRETER:
+
+INTERPRETER: BIN_FOLDER
 	$(CXX) *.cpp -o $(INTERPRETER) -std=$(STD_VER)
+	
+BIN_FOLDER:
+	mkdir -p $(BIN_FOLDER)
 	
 	
 test-helloworld: INTERPRETER
