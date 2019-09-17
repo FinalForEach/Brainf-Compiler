@@ -8,28 +8,7 @@
 void compile(std::string& inputStr)
 {
 	
-	/*std::map<int,int> nextBracketMap;
-	std::map<int,int> prevBracketMap;
-	
-	//Parse brackets
-	std::vector<int> openingBrackets;
-	for(int i=0;i<inputStr.length();i++)
-	{
-		char instruction = inputStr[i];
 
-		switch(instruction)
-		{
-			case '[':
-			openingBrackets.push_back(i);
-			break;
-			case ']':
-			int openValue = openingBrackets.back();
-			nextBracketMap[openValue]=i;
-			prevBracketMap[i]=openValue;
-			openingBrackets.pop_back();
-			break;
-		}
-	}*/
 	bool inputRequired=false;
 	for(int i=0;i<inputStr.length();i++)
 	{
@@ -45,13 +24,15 @@ void compile(std::string& inputStr)
 	
 	std::string finalFileStr = "";
 	
+	finalFileStr+="//Automatically generated code.\n";
 	finalFileStr+="#include <cstdlib>\n";
 	finalFileStr+="#include <iostream>\n";
 	finalFileStr+="int main(int argc, char **argv) \n";
 	finalFileStr+="{\n";
 	int indentLevel=1;
 	
-	addLineOfCode(finalFileStr,"unsigned int tapeSize = 30000;",indentLevel);
+	addLineOfCode(finalFileStr,"//Setup data cells\n",indentLevel);
+	addLineOfCode(finalFileStr,"const unsigned int tapeSize = 30000;",indentLevel);
 	addLineOfCode(finalFileStr,"int data[tapeSize];",indentLevel);
 	addLineOfCode(finalFileStr,"unsigned int dataIndex = 0;",indentLevel);
 	
@@ -60,6 +41,9 @@ void compile(std::string& inputStr)
 		//Needed for input.
 		addLineOfCode(finalFileStr,"char inChar;",indentLevel);
 	}
+	
+	addLineOfCode(finalFileStr,"\n",indentLevel);
+	addLineOfCode(finalFileStr,"//Start program.\n",indentLevel);
 	
 	int curVarValue=0;
 	int curShiftValue=0;
@@ -157,7 +141,8 @@ void compile(std::string& inputStr)
 		}
 	}
 	
-	addLineOfCode(finalFileStr,"exit(EXIT_SUCCESS);",indentLevel);
+	addLineOfCode(finalFileStr,"\n\n",indentLevel);
+	addLineOfCode(finalFileStr,"exit(EXIT_SUCCESS);//End program",indentLevel);
 	finalFileStr+="}\n";
 	
 	//std::cout<<finalFileStr;
