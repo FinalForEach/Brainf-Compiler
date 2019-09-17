@@ -8,8 +8,11 @@
 void compile(std::string& inputStr)
 {
 	
+	std::map<int,int> nextBracketMap;
+	std::map<int,int> prevBracketMap;
 
 	bool inputRequired=false;
+	std::vector<int> openingBrackets;
 	for(int i=0;i<inputStr.length();i++)
 	{
 		char instruction = inputStr[i];
@@ -18,6 +21,15 @@ void compile(std::string& inputStr)
 		{
 			case ',':
 			inputRequired=true;
+			break;
+			case '[':
+			openingBrackets.push_back(i);
+			break;
+			case ']':
+			int openValue = openingBrackets.back();
+			nextBracketMap[openValue]=i;
+			prevBracketMap[i]=openValue;
+			openingBrackets.pop_back();
 			break;
 		}
 	}
@@ -48,6 +60,9 @@ void compile(std::string& inputStr)
 	int curVarValue=0;
 	int curShiftValue=0;
 	
+	bool knownValue=true;
+	int curKnownValue=0;
+	
 	for(int i=0;i<inputStr.length();i++)
 	{
 		char instruction = inputStr[i];
@@ -57,9 +72,11 @@ void compile(std::string& inputStr)
 		{
 			case '+':
 			curVarValue+=1;
+			curKnownValue+1;
 			break;
 			case '-':
 			curVarValue-=1;
+			curKnownValue-=1;
 			break;
 			default:
 			if(curVarValue!=0)
@@ -83,9 +100,11 @@ void compile(std::string& inputStr)
 		{
 			case '>':
 			curShiftValue+=1;
+			knownValue=false;
 			break;
 			case '<':
 			curShiftValue-=1;
+			knownValue=false;
 			break;
 			default:
 			if(curShiftValue!=0)
@@ -131,12 +150,35 @@ void compile(std::string& inputStr)
 			break;
 			
 			case '[':
-			addLineOfCode(finalFileStr,"while(data[dataIndex]!=0){",indentLevel);
-			indentLevel+=1;
+			if(knownValue && curKnownValue==0)
+			{
+				int nextB=nextBracketMap[i];
+					std::cout<<"skipping from i:"<<i<<"to n:"<<nextB<<"\n";
+				addLineOfCode(finalFileStr,"/*",indentLevel);
+				addLineOfCode(finalFileStr,"",indentLevel,false);
+				for(i=i+1;i<nextB;i++)//Write comments + skip dead code
+				{
+					const char commentChar = (char)inputStr[i];
+					const std::string charStr = std::string(&commentChar);
+					std::cout<<commentChar<<"\n";
+					addLineOfCode(finalFileStr,charStr,0,false);
+				}
+				addLineOfCode(finalFileStr,"",indentLevel,true);
+				addLineOfCode(finalFileStr,"*/",indentLevel);
+				curKnownValue=0;
+				knownValue=true;
+			}else
+			{
+				addLineOfCode(finalFileStr,"while(data[dataIndex]!=0){",indentLevel);
+				indentLevel+=1;
+			}
+			
 			break;
 			case ']':
 			indentLevel-=1;
 			addLineOfCode(finalFileStr,"}",indentLevel);
+			curKnownValue=0;
+			knownValue=true;
 			break;
 		}
 	}
@@ -161,6 +203,8 @@ std::string& addLineOfCode(std::string& fileStr, const std::string& code, int in
 	fileStr+=code;
 	
 	if(addNewline)fileStr+="\n";
+	
+	
 	
 	return fileStr;
 }
