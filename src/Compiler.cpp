@@ -72,13 +72,19 @@ void compile(std::string& inputStr)
 		{
 			case '+':
 			curVarValue+=1;
-			curKnownValue+1;
+			curKnownValue+=1;
 			break;
 			case '-':
 			curVarValue-=1;
 			curKnownValue-=1;
 			break;
-			default:
+			//Add/Subtract result if any other instruction is seen
+			case '>':
+			case '<':
+			case '.':
+			case ',':
+			case '[':
+			case ']':
 			if(curVarValue!=0)
 			{
 				if(curVarValue>0)
@@ -142,7 +148,36 @@ void compile(std::string& inputStr)
 				
 			
 			case '.': 
-			addLineOfCode(finalFileStr,"std::cout<<(char)data[dataIndex];",indentLevel);
+			if(knownValue)//Print the raw value if known.
+			{
+				std::string val = "";
+				if(curKnownValue >= 32 && curKnownValue <= 126)
+				{
+					val+="'";
+					switch(curKnownValue)
+					{
+						case '\'':
+						case '\\': //Require escape chars
+						val+='\\';
+						val+=curKnownValue;
+						break;
+						default:
+						val+=curKnownValue;
+						break;
+					}
+					val+="'";
+				}else
+				{
+					val = std::to_string(curKnownValue);
+				}
+				std::cout<<"Printing "<<val<<"\n";
+				addLineOfCode(finalFileStr,"std::cout<<",indentLevel,false);
+				addLineOfCode(finalFileStr,val,0,false);
+				addLineOfCode(finalFileStr,";",0,true);
+			}else
+			{
+				addLineOfCode(finalFileStr,"std::cout<<(char)data[dataIndex];",indentLevel);
+			}
 			break;
 			case ',':
 			addLineOfCode(finalFileStr,"std::cin >> inChar;",indentLevel);
@@ -153,17 +188,15 @@ void compile(std::string& inputStr)
 			if(knownValue && curKnownValue==0)
 			{
 				int nextB=nextBracketMap[i];
-					std::cout<<"skipping from i:"<<i<<"to n:"<<nextB<<"\n";
 				addLineOfCode(finalFileStr,"/*",indentLevel);
 				addLineOfCode(finalFileStr,"",indentLevel,false);
 				for(i=i+1;i<nextB;i++)//Write comments + skip dead code
 				{
 					const char commentChar = (char)inputStr[i];
 					const std::string charStr = std::string(&commentChar);
-					std::cout<<commentChar<<"\n";
 					addLineOfCode(finalFileStr,charStr,0,false);
 				}
-				addLineOfCode(finalFileStr,"",indentLevel,true);
+				addLineOfCode(finalFileStr,"",0,true);
 				addLineOfCode(finalFileStr,"*/",indentLevel);
 				curKnownValue=0;
 				knownValue=true;
