@@ -37,13 +37,16 @@ void compile(std::string& inputStr)
 	finalFileStr+="#include <iostream>\n";
 	finalFileStr+="int main(int argc, char **argv) \n";
 	finalFileStr+="{\n";
+	int indentLevel=1;
 	
-	finalFileStr+="unsigned int tapeSize = 30000;\n";
-	finalFileStr+="int data[tapeSize];\n";
-	finalFileStr+="unsigned int dataIndex = 0;\n";
+	addLineOfCode(finalFileStr,"unsigned int tapeSize = 30000;",indentLevel);
+	addLineOfCode(finalFileStr,"int data[tapeSize];",indentLevel);
+	addLineOfCode(finalFileStr,"unsigned int dataIndex = 0;",indentLevel);
+	
 	
 	//Needed for input.
-	finalFileStr+="char inChar;\n";
+	addLineOfCode(finalFileStr,"char inChar;",indentLevel);
+	
 	
 	for(int i=0;i<inputStr.length();i++)
 	{
@@ -52,32 +55,34 @@ void compile(std::string& inputStr)
 		switch(instruction)
 		{
 			case '>':
-			finalFileStr+="dataIndex+=1;if(dataIndex>=tapeSize)dataIndex=0;\n";
+			addLineOfCode(finalFileStr,"dataIndex+=1;if(dataIndex>=tapeSize)dataIndex=0;",indentLevel);
 			break;
 			case '<':
-			finalFileStr+="dataIndex-=1;if(dataIndex<0)dataIndex=tapeSize-1;\n";
+			addLineOfCode(finalFileStr,"dataIndex-=1;if(dataIndex<0)dataIndex=tapeSize-1;",indentLevel);
 			break;
 			
 			case '+':
-			finalFileStr+="data[dataIndex]+=1;\n";
+			addLineOfCode(finalFileStr,"data[dataIndex]+=1;",indentLevel);
 			break;
 			case '-':
-			finalFileStr+="data[dataIndex]-=1;\n";
+			addLineOfCode(finalFileStr,"data[dataIndex]-=1;",indentLevel);
 			break;
 			
 			case '.': 
-			finalFileStr+="std::cout<<(char)data[dataIndex];\n";
+			addLineOfCode(finalFileStr,"std::cout<<(char)data[dataIndex];",indentLevel);
 			break;
 			case ',':
-			finalFileStr+="std::cin >> inChar;\n";
-			finalFileStr+="data[dataIndex] = inChar;\n";
+			addLineOfCode(finalFileStr,"std::cin >> inChar;",indentLevel);
+			addLineOfCode(finalFileStr,"data[dataIndex] = inChar;",indentLevel);
 			break;
 			
 			case '[':
-			finalFileStr+="while(data[dataIndex]!=0){\n";
+			addLineOfCode(finalFileStr,"while(data[dataIndex]!=0){",indentLevel);
+			indentLevel+=1;
 			break;
 			case ']':
-			finalFileStr+="}\n";
+			addLineOfCode(finalFileStr,"}",indentLevel);
+			indentLevel-=1;
 			break;
 		}
 	}
@@ -90,4 +95,15 @@ void compile(std::string& inputStr)
 	std::ofstream outputFile;
 	outputFile.open("output.cpp");
 	outputFile<<finalFileStr;
+	outputFile.close();
+}
+std::string& addLineOfCode(std::string& fileStr, const std::string& code, int indentLevel)
+{
+	for(int i = 0; i< indentLevel;i++)
+	{
+		fileStr+="\t";
+	}
+	fileStr+=code;
+	fileStr+="\n";
+	return fileStr;
 }
