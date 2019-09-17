@@ -48,11 +48,13 @@ void compile(std::string& inputStr)
 	addLineOfCode(finalFileStr,"char inChar;",indentLevel);
 	
 	int curVarValue=0;
+	int curShiftValue=0;
 	
 	for(int i=0;i<inputStr.length();i++)
 	{
 		char instruction = inputStr[i];
 
+		//Addition / Subtraction
 		switch(instruction)
 		{
 			case '+':
@@ -64,22 +66,56 @@ void compile(std::string& inputStr)
 			default:
 			if(curVarValue!=0)
 			{
-				addLineOfCode(finalFileStr,"data[dataIndex]+=",indentLevel,false);
-				addLineOfCode(finalFileStr,std::to_string(curVarValue),0,false);
+				if(curVarValue>0)
+				{
+					addLineOfCode(finalFileStr,"data[dataIndex]+=",indentLevel,false);
+					addLineOfCode(finalFileStr,std::to_string(curVarValue),0,false);
+				}else
+				{
+					addLineOfCode(finalFileStr,"data[dataIndex]-=",indentLevel,false);
+					addLineOfCode(finalFileStr,std::to_string(-curVarValue),0,false);
+				}
 				addLineOfCode(finalFileStr,";",0,true);
 				curVarValue=0;
 			}
 			break;
 		}
+		//Shift Left / Right
 		switch(instruction)
 		{
 			case '>':
-			addLineOfCode(finalFileStr,"dataIndex+=1;if(dataIndex>=tapeSize)dataIndex=0;",indentLevel);
+			curShiftValue+=1;
 			break;
 			case '<':
-			addLineOfCode(finalFileStr,"dataIndex-=1;if(dataIndex<0)dataIndex=tapeSize-1;",indentLevel);
+			curShiftValue-=1;
 			break;
-			
+			default:
+			if(curShiftValue!=0)
+			{
+				//The shift
+				addLineOfCode(finalFileStr,"dataIndex+=",indentLevel,false);
+				addLineOfCode(finalFileStr,std::to_string(curShiftValue),0,false);
+				addLineOfCode(finalFileStr,";",0,true);
+				
+				//Bounds wrapping, may change later if I want unlimited tape
+				if(curShiftValue>0)
+				{
+					addLineOfCode(finalFileStr,"if(dataIndex>=tapeSize)dataIndex=0;",indentLevel,true);
+				}else
+				{
+					addLineOfCode(finalFileStr,"if(dataIndex<0)dataIndex=tapeSize-1;",indentLevel,true);
+				}
+				
+				
+				
+				curShiftValue=0;
+			}
+			break;
+		}
+		//Rest of instructions
+		switch(instruction)
+		{
+				
 			
 			case '.': 
 			addLineOfCode(finalFileStr,"std::cout<<(char)data[dataIndex];",indentLevel);
