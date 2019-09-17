@@ -8,7 +8,7 @@
 void compile(std::string& inputStr)
 {
 	
-	std::map<int,int> nextBracketMap;
+	/*std::map<int,int> nextBracketMap;
 	std::map<int,int> prevBracketMap;
 	
 	//Parse brackets
@@ -29,6 +29,18 @@ void compile(std::string& inputStr)
 			openingBrackets.pop_back();
 			break;
 		}
+	}*/
+	bool inputRequired=false;
+	for(int i=0;i<inputStr.length();i++)
+	{
+		char instruction = inputStr[i];
+
+		switch(instruction)
+		{
+			case ',':
+			inputRequired=true;
+			break;
+		}
 	}
 	
 	std::string finalFileStr = "";
@@ -44,8 +56,10 @@ void compile(std::string& inputStr)
 	addLineOfCode(finalFileStr,"unsigned int dataIndex = 0;",indentLevel);
 	
 	
-	//Needed for input.
-	addLineOfCode(finalFileStr,"char inChar;",indentLevel);
+	if(inputRequired){
+		//Needed for input.
+		addLineOfCode(finalFileStr,"char inChar;",indentLevel);
+	}
 	
 	int curVarValue=0;
 	int curShiftValue=0;
@@ -93,17 +107,24 @@ void compile(std::string& inputStr)
 			if(curShiftValue!=0)
 			{
 				//The shift
-				addLineOfCode(finalFileStr,"dataIndex+=",indentLevel,false);
-				addLineOfCode(finalFileStr,std::to_string(curShiftValue),0,false);
+				if(curShiftValue>0)
+				{
+					addLineOfCode(finalFileStr,"dataIndex+=",indentLevel,false);
+					addLineOfCode(finalFileStr,std::to_string(curShiftValue),0,false);
+				}else
+				{
+					addLineOfCode(finalFileStr,"dataIndex-=",indentLevel,false);
+					addLineOfCode(finalFileStr,std::to_string(-curShiftValue),0,false);
+				}
 				addLineOfCode(finalFileStr,";",0,true);
 				
 				//Bounds wrapping, may change later if I want unlimited tape
 				if(curShiftValue>0)
 				{
-					addLineOfCode(finalFileStr,"if(dataIndex>=tapeSize)dataIndex=0;",indentLevel,true);
+					addLineOfCode(finalFileStr,"if(dataIndex>=tapeSize)dataIndex%=tapeSize;",indentLevel,true);
 				}else
 				{
-					addLineOfCode(finalFileStr,"if(dataIndex<0)dataIndex=tapeSize-1;",indentLevel,true);
+					addLineOfCode(finalFileStr,"if(dataIndex<0)dataIndex=tapeSize+dataIndex;",indentLevel,true);
 				}
 				
 				
