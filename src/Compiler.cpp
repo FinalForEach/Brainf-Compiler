@@ -13,23 +13,45 @@ void compile(std::string& inputStr)
 
 	bool inputRequired=false;
 	std::vector<int> openingBrackets;
+	
+	std::map<int,bool> clears;
+	int numClearAdd=0;
+	bool canBeClear=true;
 	for(int i=0;i<inputStr.length();i++)
 	{
 		char instruction = inputStr[i];
-
+		int openValue=0;
 		switch(instruction)
 		{
 			case ',':
 			inputRequired=true;
+			canBeClear=false;
 			break;
 			case '[':
 			openingBrackets.push_back(i);
+			numClearAdd=0;
+			canBeClear=true;
 			break;
 			case ']':
-			int openValue = openingBrackets.back();
+			openValue = openingBrackets.back();
+			if(canBeClear && (numClearAdd==1 || numClearAdd==-1))
+			{
+				clears[openValue]=true;
+			}
 			nextBracketMap[openValue]=i;
 			prevBracketMap[i]=openValue;
 			openingBrackets.pop_back();
+			canBeClear=false;
+			break;
+			case '+':
+			numClearAdd++;
+			break;
+			case '-':
+			numClearAdd--;
+			break;
+			case '>':
+			case '<':
+			canBeClear=false;
 			break;
 		}
 	}
@@ -62,6 +84,7 @@ void compile(std::string& inputStr)
 	
 	bool knownValue=true;
 	int curKnownValue=0;
+	bool clearOwed=false;
 	
 	for(int i=0;i<inputStr.length();i++)
 	{
@@ -84,7 +107,32 @@ void compile(std::string& inputStr)
 			case '.':
 			case ',':
 			case '[':
+			if(clears[i])//No need to add/sub if going to clear after.
+			{
+				curVarValue=0;
+				curKnownValue=0;
+				knownValue=true;
+				break;
+			}
 			case ']':
+			if(clearOwed)
+			{
+				addLineOfCode(finalFileStr,"data[dataIndex]=",indentLevel,false);
+				addLineOfCode(finalFileStr,std::to_string(curVarValue),0,false);
+				addLineOfCode(finalFileStr,";",0,false);
+				
+				if(curVarValue!=0)
+				{
+					addLineOfCode(finalFileStr,"//Clear and set value",0,true);
+				}else
+				{
+					addLineOfCode(finalFileStr,"//Clear value",0,true);
+				}
+				
+				curVarValue=0;
+				clearOwed=false;
+				knownValue=true;
+			}
 			if(curVarValue!=0)
 			{
 				if(curVarValue>0)
@@ -185,7 +233,7 @@ void compile(std::string& inputStr)
 			break;
 			
 			case '[':
-			if(knownValue && curKnownValue==0)
+			if(knownValue && curKnownValue==0 && clears[i]!=true)
 			{
 				int nextB=nextBracketMap[i];
 				addLineOfCode(finalFileStr,"/*",indentLevel);
@@ -202,8 +250,16 @@ void compile(std::string& inputStr)
 				knownValue=true;
 			}else
 			{
-				addLineOfCode(finalFileStr,"while(data[dataIndex]!=0){",indentLevel);
-				indentLevel+=1;
+				if(clears[i])//Clearing value, not supposed to be a loop
+				{
+					clearOwed=true;
+					i=nextBracketMap[i];
+				}else
+				{
+					addLineOfCode(finalFileStr,"while(data[dataIndex]!=0){",indentLevel);
+					indentLevel+=1;
+				}
+				
 			}
 			
 			break;
