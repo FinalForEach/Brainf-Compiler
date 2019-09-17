@@ -1,31 +1,18 @@
 BIN_FOLDER = ../bin
 TEST_FOLDER = ../test-programs
 
-INTERPRETER = $(BIN_FOLDER)/interpreter
+COMPILER = $(BIN_FOLDER)/compiler
 
 STD_VER = c++17
 
-all: INTERPRETER
+all: COMPILER
 
 
 
-INTERPRETER: BIN_FOLDER
-	$(CXX) *.cpp -o $(INTERPRETER) -std=$(STD_VER)
+COMPILER: BIN_FOLDER
+	$(CXX) *.cpp -o $(COMPILER) -std=$(STD_VER)
 	
 BIN_FOLDER:
 	mkdir -p $(BIN_FOLDER)
-	
-	
-test-helloworld: INTERPRETER
-	$(INTERPRETER) $(TEST_FOLDER)/Hello\ World
-	
-test-hellocomplex: INTERPRETER
-	$(INTERPRETER) $(TEST_FOLDER)/Hello\ World\ Complex
-	
-test-cat0: INTERPRETER
-	$(INTERPRETER) $(TEST_FOLDER)/Cat0
-	
-test-cellsize: INTERPRETER
-	$(INTERPRETER) $(TEST_FOLDER)/Cell\ Size
 clean:
-	rm -rf $(INTERPRETER)
+	rm -rf $(COMPILER)
