@@ -87,6 +87,18 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	{
 		IRToken *pIRToken = pIRTokensVec[ti];
 		
+		//Optimize IRTokenClear by forgetting previous adds
+		if(pIRTokensVec.size()-ti>=2 && pIRToken->getName() == "IRTokenMultiAdd")
+		{
+			if(pIRTokensVec[ti+1]->getName() == "IRTokenClear")
+			{
+				pIRTokensVecTmp.push_back(pIRTokensVec[ti+1]);//Leave only the clear
+				ti+=1;//Consume ir tokens
+				continue;
+			}
+		}
+		
+		//IRTokenMultiply
 		if(pIRTokensVec.size()-ti>=6 && pIRToken->getName() == "IRTokenLoopOpen")
 		{
 			if(pIRTokensVec[ti+1]->getName() == "IRTokenMultiShift")

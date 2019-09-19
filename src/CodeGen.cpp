@@ -88,5 +88,6 @@ std::string IRTokenMultiply::generateCode() const
 	code+="] * ";
 	code+=std::to_string(factor);
 	code+=";";
+	code+= "data[dataIndex]=0;";//Clears the cell
 	return code;	
 }
