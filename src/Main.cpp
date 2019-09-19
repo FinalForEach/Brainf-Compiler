@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include "Utils.hpp"
 #include "Compiler.hpp"
+#include "Tokenizer.hpp"
 int main(int argc, char **argv)
 {
 	if(argc<=1)
@@ -29,8 +30,12 @@ int main(int argc, char **argv)
 	std::cout<<"Loading file: "<<filename<<"\n";
 	std::cout<<"Loaded string:"<<inputStr<<"\n";
 	#endif
-	compile(inputStr);
+	//compile(inputStr);
 	
+	std::vector<Token*> pTokensVec;
+	tokenizeString(inputStr, pTokensVec);
+	
+	printTokens(pTokensVec);
 	
 	exit(EXIT_SUCCESS);
 }
