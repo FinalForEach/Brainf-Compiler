@@ -9,11 +9,8 @@ class Token
 	public:
 	Token(char c)
 	:value(c)
-	{
-	}
-	~Token()
-	{
-	}
+	{}
+	~Token(){}
 	virtual std::string getName() const
 	{
 		return "UNKNOWN_TOKEN";

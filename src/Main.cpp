@@ -4,6 +4,7 @@
 #include "Utils.hpp"
 #include "Compiler.hpp"
 #include "Tokenizer.hpp"
+#include "IR.hpp"
 int main(int argc, char **argv)
 {
 	if(argc<=1)
@@ -33,9 +34,19 @@ int main(int argc, char **argv)
 	//compile(inputStr);
 	
 	std::vector<Token*> pTokensVec;
-	tokenizeString(inputStr, pTokensVec);
 	
+	std::cout<<"Tokenizing:\n";
+	
+	tokenizeString(inputStr, pTokensVec);
 	printTokens(pTokensVec);
+	
+	std::cout<<"\n";
+	std::cout<<"\n";
+	std::cout<<"Converting to IRTokens:\n";
+	
+	std::vector<IRToken*> pIRTokensVec;
+	convertTokensToIR(pTokensVec, pIRTokensVec);
+	printIRTokens(pIRTokensVec);
 	
 	exit(EXIT_SUCCESS);
 }
