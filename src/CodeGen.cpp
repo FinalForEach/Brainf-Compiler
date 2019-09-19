@@ -29,10 +29,17 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec)
 
 std::string IRTokenMultiAdd::generateCode() const
 {
-	std::string code = "data[dataIndex]+=";
-	code+=std::to_string(intVal);
-	code+=";";
-	return code;
+	if(intVal!=0)
+	{
+		std::string code = "data[dataIndex]+=";
+		code+=std::to_string(intVal);
+		code+=";";
+		return code;
+	}else
+	{
+		return "";
+	}
+	
 }
 std::string IRTokenMultiShift::generateCode() const
 {
@@ -50,12 +57,11 @@ std::string IRTokenMultiShift::generateCode() const
 		code+=";";
 		code+="if(dataIndex<0)dataIndex=tapeSize+dataIndex;";
 	}
-	code+=";";
 	return code;
 }
 std::string IRTokenClear::generateCode() const
 {
-	std::string code = "data[dataIndex]=0";
+	std::string code = "data[dataIndex]=0;";
 	return code;	
 }
 std::string IRTokenLoopOpen::generateCode() const
@@ -73,4 +79,14 @@ std::string IRTokenInput::generateCode() const
 std::string IRTokenPrintChar::generateCode() const
 {
 	return "std::cout<<(char)data[dataIndex];";	
+}
+
+std::string IRTokenMultiply::generateCode() const
+{
+	std::string code = "data[dataIndex]=data[dataIndex+";
+	code+=std::to_string(cellsAway);
+	code+="] * ";
+	code+=std::to_string(factor);
+	code+=";";
+	return code;	
 }

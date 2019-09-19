@@ -33,10 +33,7 @@ class IRTokenMultiAdd : public IRToken
 	}	
 	std::string getName() const override
 	{
-		std::string name = "MultiAdd(";
-		name+=std::to_string(intVal);
-		name+=")";
-		return name;
+		return "IRTokenMultiAdd";
 	}
 	std::string generateCode() const override;
 };
@@ -51,10 +48,7 @@ class IRTokenMultiShift : public IRToken
 	}
 	std::string getName() const override
 	{
-		std::string name = "IRTokenMultiShift(";
-		name+=std::to_string(numShifts);
-		name+=")";
-		return name;
+		return "IRTokenMultiShift";
 	}
 	std::string generateCode() const override;
 };
@@ -131,6 +125,26 @@ class IRTokenPrintChar : public IRToken
 	}
 	std::string generateCode() const override;
 };
+
+class IRTokenMultiply : public IRToken
+{
+	public:
+	int cellsAway;
+	int factor;
+	IRTokenMultiply(int _cellsAway,int _factor)
+	: 
+	cellsAway(_cellsAway),
+	factor(_factor),
+	IRToken()
+	{
+	}
+	std::string getName() const override
+	{
+		return "IRTokenMultiply";
+	}
+	std::string generateCode() const override;
+};
 void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec);
 void printIRTokens( std::vector<IRToken*>& pIRTokensVec);
 

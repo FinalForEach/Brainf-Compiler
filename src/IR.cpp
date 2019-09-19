@@ -77,7 +77,54 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 			pIRTokensVec.push_back(new IRTokenPrintChar());
 		}
 	}
+	optimizeIRTokens(pIRTokensVec);
 }
+
+void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
+{
+	std::vector<IRToken*> pIRTokensVecTmp;
+	for(int ti=0;ti<pIRTokensVec.size();ti++)
+	{
+		IRToken *pIRToken = pIRTokensVec[ti];
+		
+		if(pIRTokensVec.size()-ti>=6 && pIRToken->getName() == "IRTokenLoopOpen")
+		{
+			if(pIRTokensVec[ti+1]->getName() == "IRTokenMultiShift")
+			{
+				if(pIRTokensVec[ti+2]->getName() == "IRTokenMultiAdd")
+				{
+					if(pIRTokensVec[ti+3]->getName() == "IRTokenMultiShift")
+					{
+						IRTokenMultiShift *shiftAway= dynamic_cast<IRTokenMultiShift*>(pIRTokensVec[ti+1]);
+						IRTokenMultiShift *shiftBack= dynamic_cast<IRTokenMultiShift*>(pIRTokensVec[ti+3]);
+						
+						if(shiftAway->numShifts == -(shiftBack->numShifts)
+						&& pIRTokensVec[ti+4]->getName() == "IRTokenMultiAdd")
+						{
+							IRTokenMultiAdd *decToken = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[ti+4]);
+							if(decToken->intVal==-1
+							&& pIRTokensVec[ti+5]->getName() == "IRTokenLoopClose")
+							{
+								IRTokenMultiAdd *factorToken = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[ti+2]);
+								pIRTokensVecTmp.push_back(new IRTokenMultiply(shiftAway->numShifts,factorToken->intVal));
+								ti+=5;//Consume ir tokens
+								continue;
+							}
+						}
+					}
+				}
+			}
+		}
+		pIRTokensVecTmp.push_back(pIRToken);
+		
+	}
+	pIRTokensVec.clear();
+	for(int i=0; i<pIRTokensVecTmp.size();i++)
+	{
+		pIRTokensVec.push_back(pIRTokensVecTmp[i]);
+	}
+}
+
 
 void printIRTokens(std::vector<IRToken*>& pIRTokensVec)
 {
