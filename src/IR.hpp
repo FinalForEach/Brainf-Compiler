@@ -12,6 +12,15 @@ class IRToken
 	{
 		return "UNKNOWN_IRTOKEN";
 	}
+	virtual std::string generateCode() const{}
+	virtual int getPreIndentModifier() const
+	{
+		return 0;
+	}
+	virtual int getPostIndentModifier() const
+	{
+		return 0;
+	}
 };
 class IRTokenMultiAdd : public IRToken
 {
@@ -29,6 +38,7 @@ class IRTokenMultiAdd : public IRToken
 		name+=")";
 		return name;
 	}
+	std::string generateCode() const override;
 };
 class IRTokenMultiShift : public IRToken
 {
@@ -46,6 +56,7 @@ class IRTokenMultiShift : public IRToken
 		name+=")";
 		return name;
 	}
+	std::string generateCode() const override;
 };
 class IRTokenClear : public IRToken
 {
@@ -58,6 +69,7 @@ class IRTokenClear : public IRToken
 	{
 		return "IRTokenClear";
 	}
+	std::string generateCode() const override;
 };
 class IRTokenLoopOpen : public IRToken
 {
@@ -69,6 +81,11 @@ class IRTokenLoopOpen : public IRToken
 	std::string getName() const override
 	{
 		return "IRTokenLoopOpen";
+	}
+	std::string generateCode() const override;
+	int getPostIndentModifier() const override
+	{
+		return 1;
 	}
 };
 class IRTokenLoopClose : public IRToken
@@ -82,6 +99,11 @@ class IRTokenLoopClose : public IRToken
 	{
 		return "IRTokenLoopClose";
 	}
+	std::string generateCode() const override;
+	int getPreIndentModifier() const override
+	{
+		return -1;
+	}
 };
 class IRTokenInput : public IRToken
 {
@@ -94,6 +116,7 @@ class IRTokenInput : public IRToken
 	{
 		return "IRTokenInput";
 	}
+	std::string generateCode() const override;
 };
 class IRTokenPrintChar : public IRToken
 {
@@ -106,6 +129,7 @@ class IRTokenPrintChar : public IRToken
 	{
 		return "IRTokenPrintChar";
 	}
+	std::string generateCode() const override;
 };
 void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& pIRTokensVec);
 void printIRTokens( std::vector<IRToken*>& pIRTokensVec);

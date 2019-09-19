@@ -51,6 +51,8 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 			if(pTokensVec[ti+1]->getName() == "PLUS" ||pTokensVec[ti+1]->getName() == "MINUS"){
 				if(pTokensVec[ti+2]->getName() == "CLOSE_BRACKET"){
 					pIRTokensVec.push_back(new IRTokenClear());
+					ti+=2;//Consume tokens
+					continue;
 				}
 			}
 		}
@@ -84,5 +86,5 @@ void printIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	{
 		std::cout<<pIRTokensVec[i]->getName()<<", ";
 	}
-	std::cout<<"} ";
+	std::cout<<"}\n";
 }

@@ -52,5 +52,5 @@ void printTokens( std::vector<Token*>& pTokensVec)
 	{
 		std::cout<<pTokensVec[i]->getName()<<", ";
 	}
-	std::cout<<"} ";
+	std::cout<<"}\n";
 }

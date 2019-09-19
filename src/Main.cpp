@@ -5,6 +5,7 @@
 #include "Compiler.hpp"
 #include "Tokenizer.hpp"
 #include "IR.hpp"
+#include "CodeGen.hpp"
 int main(int argc, char **argv)
 {
 	if(argc<=1)
@@ -47,6 +48,18 @@ int main(int argc, char **argv)
 	std::vector<IRToken*> pIRTokensVec;
 	convertTokensToIR(pTokensVec, pIRTokensVec);
 	printIRTokens(pIRTokensVec);
+	
+	std::cout<<"\n";
+	std::cout<<"\n";
+	std::cout<<"Generating code:\n";
+	
+	std::string code = generateCode(pIRTokensVec);
+	std::cout<<code;
+	
+	std::ofstream outputFile;
+	outputFile.open("../output.cpp");
+	outputFile<<code;
+	outputFile.close();
 	
 	exit(EXIT_SUCCESS);
 }
