@@ -31,7 +31,24 @@ std::string IRTokenMultiAdd::generateCode() const
 {
 	if(intVal!=0)
 	{
-		std::string code = "data[dataIndex]+=";
+		std::string code = "data[";
+		if(cellsAway!=0)
+		{
+			if(cellsAway>0)
+			{
+				code += "dataIndex+";
+				code+=std::to_string(cellsAway);
+				code+="]+=";
+			}else
+			{
+				code += "dataIndex-";
+				code+=std::to_string(-cellsAway);
+				code+="]+=";
+			}
+		}else
+		{
+			code += "dataIndex]+=";
+		}
 		code+=std::to_string(intVal);
 		code+=";";
 		return code;

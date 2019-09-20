@@ -127,6 +127,28 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 				}
 			}
 		}
+		
+		//Optimize IRTokenMultiAdd by combining with balanced shifts
+		if(pIRTokensVec.size()-ti>=3 && pIRToken->getName() == "IRTokenMultiShift")
+		{
+			if(pIRTokensVec[ti+1]->getName() == "IRTokenMultiAdd")
+			{
+				IRTokenMultiAdd *maddToken = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[ti+1]);
+				if(pIRTokensVec[ti+2]->getName() == "IRTokenMultiShift")
+				{
+					IRTokenMultiShift *shiftAway= dynamic_cast<IRTokenMultiShift*>(pIRTokensVec[ti]);
+					IRTokenMultiShift *shiftBack= dynamic_cast<IRTokenMultiShift*>(pIRTokensVec[ti+2]);
+					if(shiftAway->numShifts == -(shiftBack->numShifts))
+					{
+						maddToken->cellsAway=shiftAway->numShifts;
+						pIRTokensVecTmp.push_back(maddToken);
+						ti+=2;//Consume ir tokens
+						continue;
+					}
+				}
+			}
+		}
+		
 		pIRTokensVecTmp.push_back(pIRToken);
 		
 	}

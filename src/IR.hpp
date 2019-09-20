@@ -26,8 +26,10 @@ class IRTokenMultiAdd : public IRToken
 {
 	public:
 	int intVal;
+	int cellsAway;
 	IRTokenMultiAdd(int i)
 	: intVal(i),
+	cellsAway(0),
 	IRToken()
 	{
 	}	
