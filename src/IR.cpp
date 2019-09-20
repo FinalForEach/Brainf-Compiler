@@ -2,6 +2,7 @@
 
 void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& pIRTokensVec)
 {
+	Environment env;
 	for(int ti=0;ti<pTokensVec.size();ti++)
 	{
 		Token *pToken = pTokensVec[ti];
@@ -77,10 +78,10 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 			pIRTokensVec.push_back(new IRTokenPrintChar());
 		}
 	}
-	optimizeIRTokens(pIRTokensVec);
+	optimizeIRTokens(pIRTokensVec, env);
 }
 
-void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
+void optimizeIRTokensStageA(std::vector<IRToken*>& pIRTokensVec)
 {
 	std::vector<IRToken*> pIRTokensVecTmp;
 	for(int ti=0;ti<pIRTokensVec.size();ti++)
@@ -158,7 +159,65 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 		pIRTokensVec.push_back(pIRTokensVecTmp[i]);
 	}
 }
-
+void optimizeIRTokensStageB(std::vector<IRToken*>& pIRTokensVec, Environment& env)
+{
+	std::vector<IRToken*> pIRTokensVecTmp;
+	
+	//Run through each token, taking note of current cell value
+	
+	for(int ti=0;ti<pIRTokensVec.size();ti++)
+	{
+		IRToken *pIRToken = pIRTokensVec[ti];
+		
+		if(env.hasKnownCellValue()){
+			if(pIRToken->getName() == "IRTokenMultiAdd"){
+				IRTokenMultiAdd *maddToken = dynamic_cast<IRTokenMultiAdd*>(pIRToken);
+				if(maddToken->cellsAway==0)
+				{
+					env.addToKnownCellValue(maddToken->intVal);
+				}
+				
+			}
+			if(pIRToken->getName() == "IRTokenMultiShift"){
+				env.forgetCellValue();
+			}
+			if(pIRToken->getName() == "IRTokenInput"){
+				env.forgetCellValue();
+			}
+			if(pIRToken->getName() == "IRTokenPrintChar")
+			{
+				IRTokenPrintChar *printCToken = dynamic_cast<IRTokenPrintChar*>(pIRToken);
+				
+				std::cout<<"Know cell value to print:"<<std::to_string(env.getKnownCellValue())<<"\n";
+				
+				printCToken->knownCharValue=env.getKnownCellValue();
+			}
+		}
+		if(pIRToken->getName() == "IRTokenClear"){
+			env.rememberCellValue(0);
+		}
+		if(pIRToken->getName() == "IRTokenLoopClose"){
+			env.rememberCellValue(0);//Can only exit loop if value is 0
+		}
+		if(pIRToken->getName() == "IRTokenMultiply"){
+			env.rememberCellValue(0);//Multiply clears current cell too
+		}
+		
+		
+		pIRTokensVecTmp.push_back(pIRToken);
+	}
+	
+	pIRTokensVec.clear();
+	for(int i=0; i<pIRTokensVecTmp.size();i++)
+	{
+		pIRTokensVec.push_back(pIRTokensVecTmp[i]);
+	}
+}
+void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
+{
+	optimizeIRTokensStageA(pIRTokensVec);
+	optimizeIRTokensStageB(pIRTokensVec, env);
+}
 
 void printIRTokens(std::vector<IRToken*>& pIRTokensVec)
 {

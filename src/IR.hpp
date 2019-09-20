@@ -2,7 +2,40 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <optional>
 #include "Tokenizer.hpp"
+
+
+class Environment 
+{
+	std::optional<int> knownCellValue;
+	public:
+	Environment()
+	:knownCellValue(0)
+	{
+	}
+	bool hasKnownCellValue() const
+	{
+		return knownCellValue.has_value();
+	}
+	int getKnownCellValue() const
+	{
+		return knownCellValue.value();
+	}
+	void addToKnownCellValue(int a)
+	{
+		knownCellValue.value()+=a;
+	}
+	void forgetCellValue()
+	{
+		knownCellValue=std::nullopt;
+	}
+	void rememberCellValue(int v)
+	{
+		knownCellValue=v;
+	}
+};
+
 class IRToken
 {
 	public:
@@ -117,6 +150,7 @@ class IRTokenInput : public IRToken
 class IRTokenPrintChar : public IRToken
 {
 	public:
+	std::optional<int> knownCharValue;
 	IRTokenPrintChar()
 	: IRToken()
 	{
@@ -126,6 +160,12 @@ class IRTokenPrintChar : public IRToken
 		return "IRTokenPrintChar";
 	}
 	std::string generateCode() const override;
+	
+	
+	bool hasKnownCharValue() const
+	{
+		return knownCharValue.has_value();
+	}
 };
 
 class IRTokenMultiply : public IRToken
@@ -146,7 +186,8 @@ class IRTokenMultiply : public IRToken
 	}
 	std::string generateCode() const override;
 };
+
 void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& pIRTokensVec);
-void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env);
 void printIRTokens( std::vector<IRToken*>& pIRTokensVec);
 

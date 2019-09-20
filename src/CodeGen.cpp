@@ -95,6 +95,28 @@ std::string IRTokenInput::generateCode() const
 }
 std::string IRTokenPrintChar::generateCode() const
 {
+	if(hasKnownCharValue())
+	{
+		char c = knownCharValue.value();
+		std::cout<<"Knowing value: "<<c<<"\n";
+		if(c >= 32 && c <= 126)
+		{
+			std::string code = "std::cout<<'";
+			switch(c)
+			{
+				case '\'':
+				case '\\': //Require escape chars
+				code+='\\';
+				code+=c;
+				break;
+				default:
+				code+=c;
+				break;
+			}
+			code+="'";
+			return code;
+		}
+	}
 	return "std::cout<<(char)data[dataIndex];";	
 }
 
