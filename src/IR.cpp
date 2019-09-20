@@ -187,9 +187,7 @@ void optimizeIRTokensStageB(std::vector<IRToken*>& pIRTokensVec, Environment& en
 			if(pIRToken->getName() == "IRTokenPrintChar")
 			{
 				IRTokenPrintChar *printCToken = dynamic_cast<IRTokenPrintChar*>(pIRToken);
-				
-				std::cout<<"Know cell value to print:"<<std::to_string(env.getKnownCellValue())<<"\n";
-				
+								
 				printCToken->knownCharValue=env.getKnownCellValue();
 			}
 		}
@@ -213,10 +211,131 @@ void optimizeIRTokensStageB(std::vector<IRToken*>& pIRTokensVec, Environment& en
 		pIRTokensVec.push_back(pIRTokensVecTmp[i]);
 	}
 }
+void optimizeIRTokensStageC(std::vector<IRToken*>& pIRTokensVec)
+{
+	std::vector<IRToken*> pIRTokensVecTmp;
+	
+	std::string printStr = "";
+	//Move known printChars into their own section for further optimization
+	for(int ti=0;ti<pIRTokensVec.size();ti++)
+	{
+		IRToken *pIRToken = pIRTokensVec[ti];
+		
+		if(pIRToken->getName() == "IRTokenPrintChar")
+		{
+			IRTokenPrintChar *printCToken = dynamic_cast<IRTokenPrintChar*>(pIRToken);
+			if(printCToken->isLiteralChar())
+			{
+				//knownPrintChars.push_back(printCToken);
+				
+				char c = printCToken->knownCharValue.value();
+				switch(c)
+				{
+					case '"':
+					case '\'':
+					case '\\': //Require escape chars
+					printStr+='\\';
+					printStr+=c;
+					break;
+					default:
+					printStr+=c;
+					break;
+				}
+				
+				continue;//Consume token
+			}else
+			{
+				if(printStr!="")
+				{
+					pIRTokensVecTmp.push_back(new IRTokenPrintStr(printStr));
+					printStr="";
+					//knownPrintChars.clear();
+					pIRTokensVecTmp.push_back(pIRToken);
+					continue;//Consume token
+				}
+			}
+		}
+		if(pIRToken->getName() == "IRTokenLoopClose")
+		{
+			if(printStr!="")
+			{
+				pIRTokensVecTmp.push_back(new IRTokenPrintStr(printStr));
+				printStr="";
+			}
+			
+		}
+		
+		
+		pIRTokensVecTmp.push_back(pIRToken);
+	}
+
+	if(printStr!="")//Print remaining printChars if they exist
+	{
+		pIRTokensVecTmp.push_back(new IRTokenPrintStr(printStr));
+		printStr="";
+	}
+	
+	pIRTokensVec.clear();
+	for(int i=0; i<pIRTokensVecTmp.size();i++)
+	{
+		pIRTokensVec.push_back(pIRTokensVecTmp[i]);
+	}
+}
+void optimizeIRTokensStageD(std::vector<IRToken*>& pIRTokensVec)
+{
+	std::vector<IRToken*> pIRTokensVecTmp;
+	
+	for(int ti=0;ti<pIRTokensVec.size();ti++)
+	{
+		IRToken *pIRToken = pIRTokensVec[ti];
+		
+		/*int sum=0;
+		bool doSumContinue=true;
+		for(;ti<pIRTokensVec.size() && pIRTokensVec[ti]->getName()=="IRTokenMultiAdd";ti++)
+		{
+			//std::cout<<"Going through token: "<<pIRTokensVec[ti]->getName()<<"\n";
+			IRTokenMultiAdd *multiAddToken = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[ti]);
+			if(multiAddToken->cellsAway!=0){
+				doSumContinue=false;break;
+			}
+			sum+=multiAddToken->intVal;
+		}
+		//std::cout<<sum<<"\n";
+		if(sum!=0){
+			pIRTokensVecTmp.push_back(new IRTokenMultiAdd(sum));
+			if(doSumContinue)continue;
+		}*/
+		int sum;
+		while(pIRToken->getName() == "IRTokenMultiAdd")
+		{
+			IRTokenMultiAdd *multiAddToken = dynamic_cast<IRTokenMultiAdd*>(pIRToken);
+			if(multiAddToken->cellsAway==0) //Do not combine different cells
+				sum+=multiAddToken->intVal;
+			ti++;if(ti>=pIRTokensVec.size())break;
+			
+			pIRToken = pIRTokensVec[ti];
+		}
+		
+		if(sum!=0)
+		{
+			pIRTokensVec.push_back(new IRTokenMultiAdd(sum));
+			//ti--;//So that a token is not skipped.
+			continue;
+		}
+		
+		pIRTokensVecTmp.push_back(pIRToken);
+	}
+	for(int i=0; i<pIRTokensVecTmp.size();i++)
+	{
+		pIRTokensVec.push_back(pIRTokensVecTmp[i]);
+	}
+}
 void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
 {
 	optimizeIRTokensStageA(pIRTokensVec);
 	optimizeIRTokensStageB(pIRTokensVec, env);
+	optimizeIRTokensStageC(pIRTokensVec);
+	//optimizeIRTokensStageD(pIRTokensVec);
 }
 
 void printIRTokens(std::vector<IRToken*>& pIRTokensVec)

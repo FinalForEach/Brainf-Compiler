@@ -98,7 +98,6 @@ std::string IRTokenPrintChar::generateCode() const
 	if(hasKnownCharValue())
 	{
 		char c = knownCharValue.value();
-		std::cout<<"Knowing value: "<<c<<"\n";
 		if(c >= 32 && c <= 126)
 		{
 			std::string code = "std::cout<<'";
@@ -113,7 +112,7 @@ std::string IRTokenPrintChar::generateCode() const
 				code+=c;
 				break;
 			}
-			code+="'";
+			code+="';";
 			return code;
 		}
 	}
@@ -129,4 +128,12 @@ std::string IRTokenMultiply::generateCode() const
 	code+=";";
 	code+= "data[dataIndex]=0;";//Clears the cell
 	return code;	
+}
+
+std::string IRTokenPrintStr::generateCode() const
+{
+	std::string code = "std::cout<<\"";
+	code+=str;
+	code+="\";";
+	return code;
 }

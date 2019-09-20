@@ -166,8 +166,24 @@ class IRTokenPrintChar : public IRToken
 	{
 		return knownCharValue.has_value();
 	}
+	bool isLiteralChar() const
+	{
+		if(!hasKnownCharValue())return false;
+		char c = knownCharValue.value();
+		return (c >= 32 && c <= 126);
+	}
 };
-
+class IRTokenPrintStr : public IRToken
+{
+	public:
+	std::string str;
+	IRTokenPrintStr(std::string& s)
+	: str(s),
+	IRToken()
+	{
+	}
+	std::string generateCode() const override;
+};
 class IRTokenMultiply : public IRToken
 {
 	public:
