@@ -33,6 +33,11 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 	std::map<int,bool> cellClears;
 	int plusMinusCount = 0;
 	int shiftCount = 0;
+	
+	int knownValue=0;
+	bool doesKnowValue=true;
+	std::string printStr = "";
+	
 	for(int ti=0;ti<pTokensVec.size();ti++)
 	{
 		Token *pToken = pTokensVec[ti];
@@ -41,9 +46,9 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 		if(pTokensVec.size()-ti>=3 && pToken->getName() == "OPEN_BRACKET"){
 			if(pTokensVec[ti+1]->getName() == "PLUS" ||pTokensVec[ti+1]->getName() == "MINUS"){
 				if(pTokensVec[ti+2]->getName() == "CLOSE_BRACKET"){
-					//pIRTokensVec.push_back(new IRTokenClear());
 					cellClears[shiftCount]=true;
 					cellAdds[shiftCount]=0;//Ignore adds before clears.
+					knownValue=0;//Now know value at current cell to be zero
 					ti+=2;//Consume tokens
 					continue;
 				}
@@ -53,62 +58,40 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 		{
 			cellAdds.try_emplace(shiftCount,0);//Add mapping if not yet existing
 			cellAdds[shiftCount]++;
+			if(shiftCount==0)knownValue++;
 		}
 		if(pToken->getName() == "MINUS")
 		{
 			cellAdds.try_emplace(shiftCount,0);//Add mapping if not yet existing
 			cellAdds[shiftCount]--;
+			if(shiftCount==0)knownValue--;
 		}
-		if(pToken->getName() == "SHIFT_RIGHT")
-		{
-			shiftCount++;
-		}
-		if(pToken->getName() == "SHIFT_LEFT")
-		{
-			shiftCount--;
-		}
+		if(pToken->getName() == "SHIFT_RIGHT")shiftCount++;
+		if(pToken->getName() == "SHIFT_LEFT")shiftCount--;
+
 		
-		/*//MultiAdd
-		while(pToken->getName() == "PLUS" || pToken->getName() == "MINUS")
+		if(doesKnowValue && pToken->getName() == "PERIOD")
 		{
-			if(pToken->getName() == "PLUS"){
-				plusMinusCount++;
-			}else{
-				plusMinusCount--;
+			if(knownValue >= 32 && knownValue <= 126)
+			{
+				printStr+=(char)knownValue;
+			}else
+			{
+				if(printStr!="")
+				{
+					IRTokenPrintStr *irPrintStr = new IRTokenPrintStr(printStr);
+					pIRTokensVec.push_back(irPrintStr);
+					printStr="";
+				}
+				IRTokenPrintChar *irPrintChar = new IRTokenPrintChar(knownValue);
+				pIRTokensVec.push_back(irPrintChar);
 			}
-			ti++;if(ti>=pTokensVec.size())break;
 			
-			pToken = pTokensVec[ti];
 		}
-		if(plusMinusCount!=0)
-		{
-			pIRTokensVec.push_back(new IRTokenMultiAdd(plusMinusCount));
-			ti--;//So that a token is not skipped.
-			continue;
-		}*/
-		/*
-		//MultiShift
-		while(pToken->getName() == "SHIFT_RIGHT" || pToken->getName() == "SHIFT_LEFT")
-		{
-			if(pToken->getName() == "SHIFT_RIGHT"){
-				shiftCount++;
-			}else{
-				shiftCount--;
-			}
-			ti++;if(ti>=pTokensVec.size())break;
-			
-			pToken = pTokensVec[ti];
-		}
-		if(shiftCount!=0)
-		{
-			pIRTokensVec.push_back(new IRTokenMultiShift(shiftCount));
-			ti--;//So that a token is not skipped.
-			continue;
-		}*/
 		if(pToken->getName() == "OPEN_BRACKET"
 			|| pToken->getName() == "CLOSE_BRACKET"
 			|| pToken->getName() == "COMMA"
-			|| pToken->getName() == "PERIOD")
+			|| (pToken->getName() == "PERIOD" && !doesKnowValue))
 		{
 			addSectionIRTokens(pIRTokensVec, cellAdds, cellClears);
 			
@@ -119,6 +102,19 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 			
 			plusMinusCount = 0;
 			shiftCount = 0;
+			doesKnowValue=false;
+			
+			if(printStr!="")
+			{
+				IRTokenPrintStr *irPrintChar = new IRTokenPrintStr(printStr);
+				pIRTokensVec.push_back(irPrintChar);
+				printStr="";
+			}
+			if((pToken->getName() == "PERIOD" && !doesKnowValue))
+			{
+				IRTokenPrintChar *irPrintChar = new IRTokenPrintChar();
+				pIRTokensVec.push_back(irPrintChar);
+			}
 		}
 
 		
@@ -132,15 +128,16 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 			pIRTokensVec.push_back(new IRTokenLoopClose());
 		}
 		
-		//Input + Output
-		if(pToken->getName() == "COMMA")
+		if(pToken->getName() == "COMMA")//Input
 		{
 			pIRTokensVec.push_back(new IRTokenInput());
 		}
-		if(pToken->getName() == "PERIOD")
-		{
-			pIRTokensVec.push_back(new IRTokenPrintChar());
-		}
+	}
+	if(printStr!="")//Flush remaining prints.
+	{
+		IRTokenPrintStr *irPrintChar = new IRTokenPrintStr(printStr);
+		pIRTokensVec.push_back(irPrintChar);
+		printStr="";
 	}
 	optimizeIRTokens(pIRTokensVec, env);
 }

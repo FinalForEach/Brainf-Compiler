@@ -10,15 +10,24 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec)
 	code+="{\n";
 	
 	int curIndentLevel=1;
-	addLineOfCode(code,"//Setup data cells\n",curIndentLevel);
+	addLineOfCode(code,"//Setup data cells",curIndentLevel);
 	addLineOfCode(code,"const unsigned int tapeSize = 30000;",curIndentLevel);
 	addLineOfCode(code,"int data[tapeSize];",curIndentLevel);
 	addLineOfCode(code,"unsigned int dataIndex = 0;",curIndentLevel);
+	addLineOfCode(code,"//Start program",curIndentLevel);
 	for(int i=0;i<pIRTokensVec.size();i++)
 	{
 		IRToken *irToken= pIRTokensVec[i];
 		curIndentLevel+=irToken->getPreIndentModifier();
-		addLineOfCode(code,irToken->generateCode(),curIndentLevel);
+		
+		bool addTokenComment=true;
+		
+		addLineOfCode(code,irToken->generateCode(),curIndentLevel,!addTokenComment);
+		if(addTokenComment)
+		{
+			addLineOfCode(code,"// IRToken: ",0,false);
+			addLineOfCode(code,irToken->getName(),0,true);
+		}
 		curIndentLevel+=irToken->getPostIndentModifier();
 	}
 	
@@ -38,18 +47,24 @@ std::string IRTokenMultiAdd::generateCode() const
 			{
 				code += "dataIndex+";
 				code+=std::to_string(cellsAway);
-				code+="]+=";
 			}else
 			{
 				code += "dataIndex-";
 				code+=std::to_string(-cellsAway);
-				code+="]+=";
 			}
 		}else
 		{
-			code += "dataIndex]+=";
+			code += "dataIndex";
 		}
-		code+=std::to_string(intVal);
+		if(intVal>0)
+		{
+			code+="]+=";			
+			code+=std::to_string(intVal);
+		}else
+		{
+			code+="]-=";
+			code+=std::to_string(-intVal);
+		}
 		code+=";";
 		return code;
 	}else
@@ -105,10 +120,11 @@ std::string IRTokenPrintChar::generateCode() const
 {
 	if(hasKnownCharValue())
 	{
-		char c = knownCharValue.value();
+		int c = knownCharValue.value();
+		std::string code = "std::cout<<";
 		if(c >= 32 && c <= 126)
 		{
-			std::string code = "std::cout<<'";
+			code+="'";
 			switch(c)
 			{
 				case '\'':
@@ -121,6 +137,12 @@ std::string IRTokenPrintChar::generateCode() const
 				break;
 			}
 			code+="';";
+			return code;
+		}else
+		{
+			code+="(char)";
+			code+=std::to_string((int)c);
+			code+=";";
 			return code;
 		}
 	}
@@ -141,7 +163,33 @@ std::string IRTokenMultiply::generateCode() const
 std::string IRTokenPrintStr::generateCode() const
 {
 	std::string code = "std::cout<<\"";
-	code+=str;
+	for(char c : str)
+	{
+		if(c >= 32 && c <= 126)
+		{
+			switch(c)
+			{
+				case '\'':
+				case '\"':
+				case '\\': //Require escape chars
+				code+='\\';
+				code+=c;
+				break;
+				default:
+				code+=c;
+				break;
+			}
+		}else
+		{
+			switch(c)
+			{
+				case '\n':
+				code+="\n";break;
+				case '\r':
+				code+="\r";break;
+			}
+		}
+	}	
 	code+="\";";
 	return code;
 }

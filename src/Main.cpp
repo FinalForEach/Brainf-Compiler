@@ -36,22 +36,22 @@ int main(int argc, char **argv)
 	
 	std::vector<Token*> pTokensVec;
 	
-	std::cout<<"Tokenizing:\n";
+	std::cout<<"Tokenizing...\n";
 	
 	tokenizeString(inputStr, pTokensVec);
-	printTokens(pTokensVec);
+	//printTokens(pTokensVec);
 	
 	std::cout<<"\n";
 	std::cout<<"\n";
-	std::cout<<"Converting to IRTokens:\n";
+	std::cout<<"Converting to IRTokens...\n";
 	
 	std::vector<IRToken*> pIRTokensVec;
 	convertTokensToIR(pTokensVec, pIRTokensVec);
-	printIRTokens(pIRTokensVec);
+	//printIRTokens(pIRTokensVec);
 	
 	std::cout<<"\n";
 	std::cout<<"\n";
-	std::cout<<"Generating code:\n";
+	std::cout<<"Generating code...\n";
 	
 	std::string code = generateCode(pIRTokensVec);
 	std::cout<<code;

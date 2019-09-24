@@ -155,8 +155,10 @@ class IRTokenPrintChar : public IRToken
 {
 	public:
 	std::optional<int> knownCharValue;
-	IRTokenPrintChar()
-	: IRToken()
+	IRTokenPrintChar(): IRToken()
+	{
+	}
+	IRTokenPrintChar(int c): knownCharValue(c), IRToken()
 	{
 	}
 	std::string getName() const override
@@ -187,6 +189,11 @@ class IRTokenPrintStr : public IRToken
 	{
 	}
 	std::string generateCode() const override;
+	
+	std::string getName() const override
+	{
+		return "IRTokenPrintStr";
+	}
 };
 class IRTokenMultiply : public IRToken
 {
