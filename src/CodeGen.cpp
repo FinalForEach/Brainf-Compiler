@@ -78,7 +78,15 @@ std::string IRTokenMultiShift::generateCode() const
 }
 std::string IRTokenClear::generateCode() const
 {
-	std::string code = "data[dataIndex]=0;";
+	std::string code = "data[dataIndex";
+	if(cellsAway>0)
+	{
+		code+="+";
+	}
+	if(cellsAway!=0)code+=std::to_string(cellsAway);
+	code+="]=";
+	code+=std::to_string(setVal);
+	code+=";";
 	return code;	
 }
 std::string IRTokenLoopOpen::generateCode() const

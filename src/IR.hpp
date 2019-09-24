@@ -60,12 +60,12 @@ class IRTokenMultiAdd : public IRToken
 	public:
 	int intVal;
 	int cellsAway;
-	IRTokenMultiAdd(int i)
-	: intVal(i),
-	cellsAway(0),
-	IRToken()
+	IRTokenMultiAdd(int i): intVal(i), cellsAway(0), IRToken()
 	{
-	}	
+	}
+	IRTokenMultiAdd(int i, int c): intVal(i), cellsAway(c), IRToken()
+	{
+	}
 	std::string getName() const override
 	{
 		return "IRTokenMultiAdd";
@@ -89,9 +89,13 @@ class IRTokenMultiShift : public IRToken
 };
 class IRTokenClear : public IRToken
 {
+	int setVal;
+	int cellsAway;
 	public:
-	IRTokenClear()
-	: IRToken()
+	IRTokenClear(): cellsAway(0), setVal(0),IRToken()
+	{
+	}
+	IRTokenClear(int v, int c): cellsAway(c), setVal(v),IRToken()
 	{
 	}
 	std::string getName() const override

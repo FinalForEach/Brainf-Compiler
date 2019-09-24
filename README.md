@@ -2,7 +2,7 @@
 
 Yet another compiler of the esoteric language, created as a refresher.
 
-Compiles from BF to CPP source code. Applies some optimizations to make the output run faster.
+Compiles from BF to C++ source code. Applies some optimizations to make the output run faster.
 Namely:
 
 * Sequential adds / subtracts and shifts are combined

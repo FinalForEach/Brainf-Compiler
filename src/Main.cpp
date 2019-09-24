@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	std::cout<<code;
 	
 	std::ofstream outputFile;
-	outputFile.open("../output.cpp");
+	outputFile.open("./output.cpp");
 	outputFile<<code;
 	outputFile.close();
 	
