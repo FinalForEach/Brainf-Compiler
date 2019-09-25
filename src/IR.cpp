@@ -54,6 +54,8 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 				}
 			}
 		}
+
+		
 		if(pToken->getName() == "PLUS")
 		{
 			cellAdds.try_emplace(shiftCount,0);//Add mapping if not yet existing
@@ -143,6 +145,54 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 }
 void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
 {
+	/*
+		//Multiply - look back to see if a multiply pattern is found.
+		if(pToken->getName() == "CLOSE_BRACKET" && pIRTokensVec.size()>=3)
+		{
+			int s =pIRTokensVec.size();
+			std::cout<<"Found closing bracket at"<<ti<<"\n";
+			
+			printTokens(pTokensVec);
+			printIRTokens(pIRTokensVec);
+			std::cout<<"s="<<s<<"\n";
+			IRTokenMultiply *irTokenMult = nullptr;
+			IRTokenLoopOpen *irLoopOpen = nullptr;
+			IRTokenMultiAdd *irmaddA = nullptr;
+			IRTokenMultiAdd *irmaddB = nullptr;
+			std::cout<<pIRTokensVec[s-3]->getName()<<"\n";
+			std::cout<<pIRTokensVec[s-2]->getName()<<"\n";
+			std::cout<<pIRTokensVec[s-1]->getName()<<"\n";
+			if((irLoopOpen = dynamic_cast<IRTokenLoopOpen*>(pIRTokensVec[s-3]))!=nullptr)
+			{
+				std::cout<<"Found irLoopOpen\n";
+				if((irmaddA = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[s-2]))!=nullptr)
+				{
+					std::cout<<"Found irmaddA\n";
+					if((irmaddB = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[s-1]))!=nullptr)
+					{
+						std::cout<<"Found irmaddB\n";
+						if(irmaddA->intVal==-1 && irmaddA->cellsAway==0)
+						{
+							irTokenMult = new IRTokenMultiply(irmaddB->cellsAway,irmaddB->intVal);
+						}else
+						{
+							if(irmaddB->intVal==-1 && irmaddB->cellsAway==0)
+							{
+								irTokenMult = new IRTokenMultiply(irmaddA->cellsAway,irmaddA->intVal);
+							}
+						}
+					}
+				}
+			}
+			if(irTokenMult!=nullptr)
+			{
+				pIRTokensVec.erase(pIRTokensVec.end()-2,pIRTokensVec.end());
+				pIRTokensVec.push_back(irTokenMult);
+				std::cout<<"Generated multiply token\n";
+				continue;
+			}
+		}
+	*/
 }
 
 void printIRTokens(std::vector<IRToken*>& pIRTokensVec)

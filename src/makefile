@@ -1,3 +1,4 @@
+OBJ_FOLDER = ./object-files
 BIN_FOLDER = ../bin
 TEST_FOLDER = ../test-programs
 
@@ -5,14 +6,22 @@ COMPILER = $(BIN_FOLDER)/compiler
 
 STD_VER = c++17
 
+
+SRCS = $(wildcard *.cpp)
+OBJS = $(patsubst %.cpp,$(OBJ_FOLDER)/%.o,$(SRCS))
+
 all: COMPILER
 
+CFLAGS = -std=$(STD_VER)
+LFLAGS = 
 
 
-COMPILER: BIN_FOLDER
-	$(CXX) *.cpp -o $(COMPILER) -std=$(STD_VER)
+COMPILER: $(OBJS)
+	mkdir -p $(BIN_FOLDER); $(CXX) -o $(COMPILER) $^ $(LFLAGS)
 	
-BIN_FOLDER:
-	mkdir -p $(BIN_FOLDER)
+	
+$(OBJ_FOLDER)/%.o: %.cpp
+	mkdir -p $(OBJ_FOLDER);$(CXX) -c $< -o $@ $(CFLAGS)
+
 clean:
 	rm -rf $(COMPILER)

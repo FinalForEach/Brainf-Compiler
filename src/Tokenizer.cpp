@@ -50,7 +50,7 @@ void printTokens( std::vector<Token*>& pTokensVec)
 	std::cout<<"{ ";
 	for(int i=0; i<pTokensVec.size();i++)
 	{
-		std::cout<<pTokensVec[i]->getName()<<", ";
+		std::cout<<"["<<i<<"]"<<pTokensVec[i]->getName()<<", ";
 	}
 	std::cout<<"}\n";
 }

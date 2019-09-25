@@ -68,7 +68,14 @@ class IRTokenMultiAdd : public IRToken
 	}
 	std::string getName() const override
 	{
-		return "IRTokenMultiAdd";
+		std::string name ="IRTokenMultiAdd";
+		name+="[";
+		name+=std::to_string(intVal);
+		name+="@";
+		name+=std::to_string(cellsAway);
+		name+="]";
+		return name;
+		//return "IRTokenMultiAdd";
 	}
 	std::string generateCode() const override;
 };
