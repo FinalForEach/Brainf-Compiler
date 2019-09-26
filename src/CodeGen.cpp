@@ -88,7 +88,11 @@ std::string IRTokenMultiAdd::generateCode() const
 		return code;
 	}else
 	{
-		return "";
+		std::string code = "//Would have added ";
+		code+=std::to_string(intVal);
+		code+=" to ";
+		code+=getData(cellsAway);
+		return code;
 	}
 	
 }

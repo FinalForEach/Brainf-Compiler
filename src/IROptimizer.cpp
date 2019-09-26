@@ -108,13 +108,13 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		{
 			try
 			{
-				env.knownCells.at(curIndex+madd->cellsAway)+=madd->intVal;
+				//env.knownCells.at(madd->cellsAway)+=madd->intVal;
 			}catch(std::out_of_range& oor){}
 		}
 		IRTokenClear *irClear = dynamic_cast<IRTokenClear*>(irToken);
 		if(irClear!=nullptr)
 		{
-			env.knownCells[curIndex+irClear->cellsAway]=irClear->setVal;
+			//env.knownCells[irClear->cellsAway]=irClear->setVal;
 		}
 		IRTokenMultiShift *mshift = dynamic_cast<IRTokenMultiShift*>(irToken);
 		if(mshift!=nullptr)
@@ -164,9 +164,9 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 			//env.knownCells.clear();//Forget everything.
 		//	curIndex=0;//Make known cells relative to current position.
 			
-			env.knownCells[curIndex]=0;//Current must be zero to exit loop
+			//env.knownCells[curIndex]=0;//Current must be zero to exit loop
 			//std::cout<<"Cleared knownCells.\n";
-			std::cout<<"\tNow know knownCells["<<curIndex<<"]="<<env.knownCells[curIndex]<<" \n";
+			//std::cout<<"\tNow know knownCells["<<curIndex<<"]="<<env.knownCells[curIndex]<<" \n";
 		}
 		IRTokenInput *irInput = dynamic_cast<IRTokenInput*>(irToken);
 		if(irInput!=nullptr)//Cannot know user input.
@@ -180,10 +180,11 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 			std::cout<<"Found irMult\n";
 			std::cout<<"Checking curIndex="<<curIndex<<"\n";
 			try //If factors are known, reduce to an add.
-			{/*
-				std::cout<<"Factor="<<irMult->factor<<"\n";
+			{
+				/*
+				std::cout<<"\tFactor="<<irMult->factor<<"\n";
 				int knownFactor = env.knownCells.at(curIndex);
-				std::cout<<"knownFactor="<<knownFactor<<"\n";
+				std::cout<<"\tknownFactor="<<knownFactor<<"\n";
 				int result = knownFactor * irMult->factor;
 				
 				pIRTokensVec[ti] = new IRTokenMultiAdd(result,irMult->cellsAway);
