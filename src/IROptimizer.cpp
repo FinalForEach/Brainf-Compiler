@@ -138,7 +138,10 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 					for(unsigned int l=ti+1;l<pIRTokensVec.size();l++)
 					{
 						IRToken *irTokenInLoop = pIRTokensVec[l];
-						pIRTokensVec[l] = new IRTokenNoOp(pIRTokensVec[l]);//Dead code.
+						if(dynamic_cast<IRTokenComment*>(irTokenInLoop)==nullptr)
+						{
+							pIRTokensVec[l] = new IRTokenNoOp(pIRTokensVec[l]);//Dead code.
+						}
 						if(dynamic_cast<IRTokenLoopOpen*>(irTokenInLoop)!=nullptr)
 						{
 							loopCount++;
@@ -204,13 +207,16 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 					int ifCount=1;
 					for(unsigned int l=ti+1;l<pIRTokensVec.size();l++)
 					{
-						IRToken *irTokenInLoop = pIRTokensVec[l];
-						pIRTokensVec[l] = new IRTokenNoOp(pIRTokensVec[l]);//Dead code.
-						if(dynamic_cast<IRTokenIfOpen*>(irTokenInLoop)!=nullptr)
+						IRToken *irTokenInIf = pIRTokensVec[l];
+						if(dynamic_cast<IRTokenComment*>(irTokenInIf)==nullptr)
+						{
+							pIRTokensVec[l] = new IRTokenNoOp(pIRTokensVec[l]);//Dead code.
+						}
+						if(dynamic_cast<IRTokenIfOpen*>(irTokenInIf)!=nullptr)
 						{
 							ifCount++;
 						}
-						if(dynamic_cast<IRTokenIfClose*>(irTokenInLoop)!=nullptr)
+						if(dynamic_cast<IRTokenIfClose*>(irTokenInIf)!=nullptr)
 						{
 							ifCount--;
 							if(ifCount==0)//Found matching if bracket
