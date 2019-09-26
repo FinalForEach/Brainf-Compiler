@@ -10,7 +10,7 @@ void tokenizeString(std::string& str, std::vector<Token*>& pTokensVec)
 		Token *pToken;
 		if(isspace(c))
 		{
-			continue;//Ignore whitespace chars
+			//continue;//Ignore whitespace chars
 		}
 		switch(c)
 		{

@@ -5,8 +5,8 @@
 
 class Token
 {
-	char value;
 	public:
+	char value;
 	Token(char c)
 	:value(c)
 	{}

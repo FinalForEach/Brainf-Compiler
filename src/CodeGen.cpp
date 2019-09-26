@@ -193,16 +193,6 @@ std::string IRTokenMultiply::generateCode() const
 	}
 	return code;
 }
-std::string IRTokenMultiplyShift::generateCode() const
-{
-	std::string code ="dataIndex+=data[dataIndex] * ";
-	code+=std::to_string(factor);
-	code+=";";
-	if(doClear){
-		code+= "data[dataIndex]=0;";//Clears the cell
-	}
-	return code;
-}
 
 std::string IRTokenPrintStr::generateCode() const
 {

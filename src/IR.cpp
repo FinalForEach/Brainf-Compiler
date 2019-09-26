@@ -1,5 +1,6 @@
 #include "IR.hpp"
 #include <map>
+#include "Environment.hpp"
 
 void addSectionIRTokens(std::vector<IRToken*>& pIRTokensVec, 
 	std::map<int,int>& cellAdds, std::map<int,bool>& cellClears)
@@ -28,7 +29,6 @@ void addSectionIRTokens(std::vector<IRToken*>& pIRTokensVec,
 }
 void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& pIRTokensVec)
 {
-	Environment env;
 	std::map<int,int> cellAdds;
 	std::map<int,bool> cellClears;
 	int plusMinusCount = 0;
@@ -38,9 +38,37 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 	bool doesKnowValue=true;
 	std::string printStr = "";
 	
+	std::string commentStr = "";
+	std::string whitespaceCommentStr = "";
 	for(int ti=0;ti<pTokensVec.size();ti++)
 	{
 		Token *pToken = pTokensVec[ti];
+		if(pToken->getName()=="UNKNOWN_TOKEN")
+		{
+			if(!isspace(pToken->value))
+			{
+				if(whitespaceCommentStr!="")//Don't include whitespace unless required
+				{
+					if(commentStr!="")//Ignore whitespace before comment.
+					{
+						commentStr+=whitespaceCommentStr;
+					}
+					whitespaceCommentStr="";
+				}
+				commentStr+=pToken->value;
+			}else
+			{
+				whitespaceCommentStr+=pToken->value;
+			}
+		}else
+		{
+			if(commentStr!="")
+			{
+				pIRTokensVec.push_back(new IRTokenComment(commentStr));
+				commentStr="";
+				whitespaceCommentStr="";
+			}
+		}
 		
 		//Clear
 		if(pTokensVec.size()-ti>=3 && pToken->getName() == "OPEN_BRACKET"){
@@ -142,110 +170,9 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 		printStr="";
 	}
 	printIRTokens(pIRTokensVec);
-	optimizeIRTokens(pIRTokensVec, env);
+	optimizeIRTokens(pIRTokensVec);
 }
-void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec, Environment& env)
-{
-	for(int ti=0;ti<pIRTokensVec.size();ti++)
-	{
-		IRToken *pirToken = pIRTokensVec[ti];
-		if(pirToken->getName()=="IRTokenLoopOpen")
-		{
-			int w=ti+1;
-			std::map<int,int> madds;
-			pirToken = pIRTokensVec[w];
-			bool isMultPattern=false;
-			bool foundDec=false;
-			bool foundDests=false;
-			while(w<pIRTokensVec.size())//Check if matches multiply pattern
-			{
-				pirToken = pIRTokensVec[w];
-				if(pirToken->getName()=="IRTokenLoopOpen" || pirToken->getName()=="IRTokenMultiShift")
-				{
-					isMultPattern=false;
-					break;//Give up for now
-				}
-				if(pirToken->getName()=="IRTokenLoopClose")
-				{
-					if(foundDests&&foundDec)isMultPattern=true;
-					break;
-				}
-				IRTokenMultiAdd *madd = dynamic_cast<IRTokenMultiAdd*>(pirToken);
-				if(madd!=nullptr)
-				{
-					if(madd->cellsAway==0)
-					{
-						if(madd->intVal==-1)
-						{
-							foundDec=true;
-						}else
-						{							
-							isMultPattern=false;
-							break;
-						}
-					}else
-					{
-						foundDests=true;
-					}
-				}
-				w++;
-			}
-			if(isMultPattern)//Multiplication detected.
-			{
-				std::cout<<"(First)Replacing ["<<ti<<"]"<<pIRTokensVec[ti]->getName()<<" with ifOpen\n";
-				pIRTokensVec[ti]=new IRTokenIfOpen();
-				int noOpR;
-				int lastMultR;
-				bool hasLastMult=false;
-				for(int r=ti+1;r<pIRTokensVec.size();r++)
-				{
-					IRTokenMultiAdd *madd = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[r]);
-					if(madd!=nullptr)
-					{
-						if(madd->cellsAway!=0)
-						{
-							std::cout<<"(For)Replacing ["<<r<<"]"<<pIRTokensVec[r]->getName()<<" with mult\n";
-							pIRTokensVec[r]=new IRTokenMultiply(madd->cellsAway,madd->intVal);
-							lastMultR=r;
-							hasLastMult=true;
-						}else
-						{
-							noOpR=r;
-						}
-					}
-					if(dynamic_cast<IRTokenLoopClose*>(pIRTokensVec[r])!=nullptr
-					||dynamic_cast<IRTokenLoopOpen*>(pIRTokensVec[r])!=nullptr)
-					{
-						break;
-					}
-				}
-				if(hasLastMult)
-				{
-					if(noOpR<lastMultR)
-					{
-						//Swap last multiply and clearing decrement
-						pIRTokensVec[noOpR]=pIRTokensVec[lastMultR];
-						pIRTokensVec[lastMultR]= new IRTokenClear();	
-					}else
-					{
-						pIRTokensVec[noOpR]= new IRTokenClear();
-					}
-					pIRTokensVec[w]=new IRTokenIfClose(false);
-				}else
-				{
-					pIRTokensVec[noOpR]=new IRTokenNoOp(pIRTokensVec[noOpR]);
-					pIRTokensVec[w]=new IRTokenIfClose(true);
-				}
-				
-			}
-		}
-		
-	}
-}
-void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
-{
-	optimizeIRTokensMultiplyPass(pIRTokensVec, env);
-}
+
 void printIRTokens(std::vector<IRToken*>& pIRTokensVec)
 {
 	std::cout<<"{ ";

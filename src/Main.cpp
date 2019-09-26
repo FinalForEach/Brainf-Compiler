@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	std::cout<<"Generating code...\n";
 	
 	std::string code = generateCode(pIRTokensVec);
-	std::cout<<code;
+	//std::cout<<code;
 	
 	std::ofstream outputFile;
 	outputFile.open("./output.cpp");
