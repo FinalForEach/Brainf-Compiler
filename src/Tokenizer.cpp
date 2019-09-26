@@ -8,6 +8,10 @@ void tokenizeString(std::string& str, std::vector<Token*>& pTokensVec)
 	{
 		char c = str[i];
 		Token *pToken;
+		if(isspace(c))
+		{
+			continue;//Ignore whitespace chars
+		}
 		switch(c)
 		{
 			case '+':

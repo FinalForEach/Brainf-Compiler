@@ -146,16 +146,18 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 }
 void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
 {
+	return;
 	for(int ti=0;ti<pIRTokensVec.size();ti++)
 	{
 		IRToken *pirToken = pIRTokensVec[ti];
 		if(pirToken->getName()=="IRTokenLoopOpen")
 		{
-			std::cout<<"ti="<<ti<<"\n";
 			int w=ti+1;
 			std::map<int,int> madds;
 			pirToken = pIRTokensVec[w];
 			bool isMultPattern=false;
+			bool foundDec=false;
+			bool foundDests=false;
 			while(w<pIRTokensVec.size())//Check if matches multiply pattern
 			{
 				pirToken = pIRTokensVec[w];
@@ -166,6 +168,7 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
 				}
 				if(pirToken->getName()=="IRTokenLoopClose")
 				{
+					if(foundDests&&foundDec)isMultPattern=true;
 					break;
 				}
 				IRTokenMultiAdd *madd = dynamic_cast<IRTokenMultiAdd*>(pirToken);
@@ -175,12 +178,15 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
 					{
 						if(madd->intVal==-1)
 						{
-							isMultPattern=true;
+							foundDec=true;
 						}else
 						{							
 							isMultPattern=false;
 							break;
 						}
+					}else
+					{
+						foundDests=true;
 					}
 				}
 				w++;
