@@ -1,6 +1,25 @@
 #include "CodeGen.hpp"
 #include "Compiler.hpp"
-
+std::string getData(int cellsAway)
+{
+	if(cellsAway==0)
+	{
+		return "data[dataIndex]";
+	}
+	if(cellsAway>0)
+	{
+		std::string str =  "data[dataIndex+";
+		str+=std::to_string(cellsAway);
+		str+="]";
+		return str;
+	}else
+	{
+		std::string str =  "data[dataIndex-";
+		str+=std::to_string(-cellsAway);
+		str+="]";
+		return str;		
+	}
+}
 std::string generateCode(std::vector<IRToken*>& pIRTokensVec)
 {
 	std::string code = "//Automatically generated code.\n";
@@ -12,7 +31,7 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec)
 	int curIndentLevel=1;
 	addLineOfCode(code,"//Setup data cells",curIndentLevel);
 	addLineOfCode(code,"const unsigned int tapeSize = 30000;",curIndentLevel);
-	addLineOfCode(code,"int data[tapeSize];",curIndentLevel);
+	addLineOfCode(code,"int data[tapeSize] = {};",curIndentLevel);
 	addLineOfCode(code,"unsigned int dataIndex = 0;",curIndentLevel);
 	addLineOfCode(code,"//Start program",curIndentLevel);
 	for(int i=0;i<pIRTokensVec.size();i++)
@@ -112,6 +131,20 @@ std::string IRTokenLoopClose::generateCode() const
 {
 	return "}";	
 }
+std::string IRTokenIfOpen::generateCode() const
+{
+	return "if(data[dataIndex]!=0){";	
+}
+std::string IRTokenIfClose::generateCode() const
+{
+	if(doClear)
+	{
+		return "data[dataIndex]=0;}";
+	}else
+	{
+		return "}";	
+	}
+}
 std::string IRTokenInput::generateCode() const
 {
 	return "std::cin >> data[dataIndex];";	
@@ -151,13 +184,24 @@ std::string IRTokenPrintChar::generateCode() const
 
 std::string IRTokenMultiply::generateCode() const
 {
-	std::string code = "data[dataIndex]=data[dataIndex+";
-	code+=std::to_string(cellsAway);
-	code+="] * ";
+	std::string code =getData(cellsAway);
+	code+="+=data[dataIndex] * ";
 	code+=std::to_string(factor);
 	code+=";";
-	code+= "data[dataIndex]=0;";//Clears the cell
-	return code;	
+	if(doClear){
+		code+= "data[dataIndex]=0;";//Clears the cell
+	}
+	return code;
+}
+std::string IRTokenMultiplyShift::generateCode() const
+{
+	std::string code ="dataIndex+=data[dataIndex] * ";
+	code+=std::to_string(factor);
+	code+=";";
+	if(doClear){
+		code+= "data[dataIndex]=0;";//Clears the cell
+	}
+	return code;
 }
 
 std::string IRTokenPrintStr::generateCode() const

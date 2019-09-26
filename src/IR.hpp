@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <map>
 #include <iostream>
 #include <string>
 #include <optional>
@@ -55,6 +56,29 @@ class IRToken
 		return 0;
 	}
 };
+class IRTokenNoOp : public IRToken //Used for replacing IRTokens, while preserving iteration
+{
+	IRToken *overridenIRToken;
+	public:
+	IRTokenNoOp() : overridenIRToken(nullptr), IRToken()
+	{}
+	IRTokenNoOp(IRToken *deletedIr) : overridenIRToken(deletedIr), IRToken()
+	{}
+	std::string getName() const override
+	{
+		return "IRTokenNoOp";
+	}
+	std::string generateCode() const override
+	{
+		if(overridenIRToken!=nullptr)
+		{
+			std::string code = "//Overwritten ";
+			code+=overridenIRToken->getName();
+			return code;
+		}
+		return "";
+	}
+};
 class IRTokenMultiAdd : public IRToken
 {
 	public:
@@ -68,14 +92,14 @@ class IRTokenMultiAdd : public IRToken
 	}
 	std::string getName() const override
 	{
-		std::string name ="IRTokenMultiAdd";
+		/*std::string name ="IRTokenMultiAdd";
 		name+="[";
 		name+=std::to_string(intVal);
 		name+="@";
 		name+=std::to_string(cellsAway);
 		name+="]";
-		return name;
-		//return "IRTokenMultiAdd";
+		return name;*/
+		return "IRTokenMultiAdd";
 	}
 	std::string generateCode() const override;
 };
@@ -145,6 +169,43 @@ class IRTokenLoopClose : public IRToken
 		return -1;
 	}
 };
+
+class IRTokenIfOpen : public IRToken
+{
+	public:
+	IRTokenIfOpen()
+	: IRToken()
+	{
+	}
+	std::string getName() const override
+	{
+		return "IRTokenIfOpen";
+	}
+	std::string generateCode() const override;
+	int getPostIndentModifier() const override
+	{
+		return 1;
+	}
+};
+class IRTokenIfClose : public IRToken
+{
+	public:
+	bool doClear;
+	IRTokenIfClose(bool _doClear)
+	: doClear(_doClear), IRToken()
+	{
+	}
+	std::string getName() const override
+	{
+		return "IRTokenIfClose";
+	}
+	std::string generateCode() const override;
+	int getPreIndentModifier() const override
+	{
+		return -1;
+	}
+};
+
 class IRTokenInput : public IRToken
 {
 	public:
@@ -207,16 +268,25 @@ class IRTokenMultiply : public IRToken
 	public:
 	int cellsAway;
 	int factor;
-	IRTokenMultiply(int _cellsAway,int _factor)
-	: 
-	cellsAway(_cellsAway),
-	factor(_factor),
-	IRToken()
-	{
-	}
+	bool doClear;
+	IRTokenMultiply(int _cellsAway, int _factor) 
+	: cellsAway(_cellsAway), factor(_factor), IRToken(){}
 	std::string getName() const override
 	{
 		return "IRTokenMultiply";
+	}
+	std::string generateCode() const override;
+};
+class IRTokenMultiplyShift : public IRToken
+{
+	public:
+	int factor;
+	bool doClear;
+	IRTokenMultiplyShift(int _factor) 
+	: factor(_factor), IRToken(){}
+	std::string getName() const override
+	{
+		return "IRTokenMultiplyShift";
 	}
 	std::string generateCode() const override;
 };

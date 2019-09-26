@@ -47,7 +47,9 @@ int main(int argc, char **argv)
 	
 	std::vector<IRToken*> pIRTokensVec;
 	convertTokensToIR(pTokensVec, pIRTokensVec);
-	//printIRTokens(pIRTokensVec);
+	
+	std::cout<<"Final IRTokens:\n";
+	printIRTokens(pIRTokensVec);
 	
 	std::cout<<"\n";
 	std::cout<<"\n";
