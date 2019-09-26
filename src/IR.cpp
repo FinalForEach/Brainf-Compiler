@@ -31,7 +31,6 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 {
 	std::map<int,int> cellAdds;
 	std::map<int,bool> cellClears;
-	int plusMinusCount = 0;
 	int shiftCount = 0;
 	
 	int knownValue=0;
@@ -40,7 +39,7 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 	
 	std::string commentStr = "";
 	std::string whitespaceCommentStr = "";
-	for(int ti=0;ti<pTokensVec.size();ti++)
+	for(unsigned int ti=0;ti<pTokensVec.size();ti++)
 	{
 		Token *pToken = pTokensVec[ti];
 		if(pToken->getName()=="UNKNOWN_TOKEN")
@@ -130,7 +129,6 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 				pIRTokensVec.push_back(new IRTokenMultiShift(shiftCount));
 			}
 			
-			plusMinusCount = 0;
 			shiftCount = 0;
 			doesKnowValue=false;
 			
@@ -176,7 +174,7 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 void printIRTokens(std::vector<IRToken*>& pIRTokensVec)
 {
 	std::cout<<"{ ";
-	for(int i=0; i<pIRTokensVec.size();i++)
+	for(unsigned int i=0; i<pIRTokensVec.size();i++)
 	{
 		std::cout<<pIRTokensVec[i]->getName()<<", ";
 	}

@@ -17,7 +17,7 @@ class IRToken
 	{
 		return "UNKNOWN_IRTOKEN";
 	}
-	virtual std::string generateCode() const;
+	virtual std::string generateCode() const = 0;
 	virtual int getPreIndentModifier() const
 	{
 		return 0;
@@ -26,6 +26,7 @@ class IRToken
 	{
 		return 0;
 	}
+	virtual void offsetCells(int _cellsAway){}
 };
 class IRTokenComment : public IRToken
 {
@@ -86,6 +87,10 @@ class IRTokenMultiAdd : public IRToken
 		return "IRTokenMultiAdd";
 	}
 	std::string generateCode() const override;
+	void offsetCells(int _cellsAway) override
+	{
+		cellsAway+=_cellsAway;
+	}
 };
 class IRTokenMultiShift : public IRToken
 {
@@ -116,11 +121,16 @@ class IRTokenClear : public IRToken
 		return "IRTokenClear";
 	}
 	std::string generateCode() const override;
+	void offsetCells(int _cellsAway) override
+	{
+		cellsAway+=_cellsAway;
+	}
 };
 class IRTokenLoopOpen : public IRToken
 {
 	public:
-	IRTokenLoopOpen() : IRToken()
+	int cellsAway;
+	IRTokenLoopOpen() : IRToken(), cellsAway(0)
 	{
 	}
 	std::string getName() const override
@@ -131,6 +141,10 @@ class IRTokenLoopOpen : public IRToken
 	int getPostIndentModifier() const override
 	{
 		return 1;
+	}
+	void offsetCells(int _cellsAway) override
+	{
+		cellsAway+=_cellsAway;
 	}
 };
 class IRTokenLoopClose : public IRToken
@@ -153,7 +167,8 @@ class IRTokenLoopClose : public IRToken
 class IRTokenIfOpen : public IRToken
 {
 	public:
-	IRTokenIfOpen() : IRToken()
+	int cellsAway;
+	IRTokenIfOpen() : IRToken(), cellsAway(0)
 	{
 	}
 	std::string getName() const override
@@ -165,12 +180,17 @@ class IRTokenIfOpen : public IRToken
 	{
 		return 1;
 	}
+	void offsetCells(int _cellsAway) override
+	{
+		cellsAway+=_cellsAway;
+	}
 };
 class IRTokenIfClose : public IRToken
 {
 	public:
-	bool doClear;
-	IRTokenIfClose(bool _doClear) : IRToken(), doClear(_doClear)
+	bool doesClear;
+	int cellsAway;
+	IRTokenIfClose(bool _doesClear) : IRToken(), doesClear(_doesClear), cellsAway(0)
 	{
 	}
 	std::string getName() const override
@@ -181,6 +201,10 @@ class IRTokenIfClose : public IRToken
 	int getPreIndentModifier() const override
 	{
 		return -1;
+	}
+	void offsetCells(int _cellsAway) override
+	{
+		cellsAway+=_cellsAway;
 	}
 };
 
@@ -252,6 +276,10 @@ class IRTokenMultiply : public IRToken
 		return "IRTokenMultiply";
 	}
 	std::string generateCode() const override;
+	void offsetCells(int _cellsAway) override
+	{
+		cellsAway+=_cellsAway;
+	}
 };
 
 void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& pIRTokensVec);

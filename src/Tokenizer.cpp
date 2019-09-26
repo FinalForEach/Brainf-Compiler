@@ -4,7 +4,7 @@
 
 void tokenizeString(std::string& str, std::vector<Token*>& pTokensVec)
 {
-	for(int i=0;i<str.length();i++)
+	for(unsigned int i=0;i<str.length();i++)
 	{
 		char c = str[i];
 		Token *pToken;
@@ -52,7 +52,7 @@ void tokenizeString(std::string& str, std::vector<Token*>& pTokensVec)
 void printTokens( std::vector<Token*>& pTokensVec)
 {
 	std::cout<<"{ ";
-	for(int i=0; i<pTokensVec.size();i++)
+	for(unsigned int i=0; i<pTokensVec.size();i++)
 	{
 		std::cout<<"["<<i<<"]"<<pTokensVec[i]->getName()<<", ";
 	}

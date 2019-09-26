@@ -2,7 +2,6 @@
 #include <fstream>
 #include <cstdlib>
 #include "Utils.hpp"
-#include "Compiler.hpp"
 #include "Tokenizer.hpp"
 #include "IR.hpp"
 #include "CodeGen.hpp"

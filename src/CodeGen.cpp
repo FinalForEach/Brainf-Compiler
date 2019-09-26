@@ -1,5 +1,5 @@
 #include "CodeGen.hpp"
-#include "Compiler.hpp"
+#include <string>
 std::string getData(int cellsAway)
 {
 	if(cellsAway==0)
@@ -19,6 +19,21 @@ std::string getData(int cellsAway)
 		str+="]";
 		return str;		
 	}
+}
+
+std::string& addLineOfCode(std::string& fileStr, const std::string& code, int indentLevel, bool addNewline=true)
+{
+	for(int i = 0; i< indentLevel;i++)
+	{
+		fileStr+="\t";
+	}
+	fileStr+=code;
+	
+	if(addNewline)fileStr+="\n";
+	
+	
+	
+	return fileStr;
 }
 std::string generateCode(std::vector<IRToken*>& pIRTokensVec)
 {
@@ -129,7 +144,10 @@ std::string IRTokenClear::generateCode() const
 }
 std::string IRTokenLoopOpen::generateCode() const
 {
-	return "while(data[dataIndex]!=0){";	
+	std::string code = "while(";
+	code+=getData(cellsAway);
+	code+="!=0){";
+	return code;	
 }
 std::string IRTokenLoopClose::generateCode() const
 {
@@ -137,13 +155,18 @@ std::string IRTokenLoopClose::generateCode() const
 }
 std::string IRTokenIfOpen::generateCode() const
 {
-	return "if(data[dataIndex]!=0){";	
+	std::string code = "if(";
+	code+=getData(cellsAway);
+	code+="!=0){";
+	return code;
 }
 std::string IRTokenIfClose::generateCode() const
 {
-	if(doClear)
+	if(doesClear)
 	{
-		return "data[dataIndex]=0;}";
+		std::string code = getData(cellsAway);
+		code+="}";
+		return code;
 	}else
 	{
 		return "}";	

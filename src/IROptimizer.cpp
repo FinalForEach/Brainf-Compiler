@@ -251,6 +251,49 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		}
 	}
 }
+void optimizeIRTokensOffsetShifts(std::vector<IRToken*>& pIRTokensVec)
+{
+	for(unsigned int ti=0;ti<pIRTokensVec.size();ti++)
+	{
+		IRToken *irToken = pIRTokensVec[ti];
+		IRTokenMultiShift *irShift = dynamic_cast<IRTokenMultiShift*>(irToken);
+		if(irShift!=nullptr)
+		{
+			int loopCount=0;
+			int ifCount=0;
+			bool isBalanced=false;
+			unsigned int s=ti+1;
+			for(;s<pIRTokensVec.size();s++)
+			{
+				
+				IRToken *irTokenS = pIRTokensVec[s];
+				if(dynamic_cast<IRTokenLoopOpen*>(irTokenS))
+					loopCount++;
+				if(dynamic_cast<IRTokenLoopClose*>(irTokenS))
+					loopCount--;
+				if(dynamic_cast<IRTokenIfOpen*>(irTokenS))
+					ifCount++;
+				if(dynamic_cast<IRTokenIfClose*>(irTokenS))
+					ifCount--;
+				IRTokenMultiShift *irShiftS = dynamic_cast<IRTokenMultiShift*>(irTokenS);
+				if(irShiftS!=nullptr && loopCount==0 && ifCount==0)
+				{
+					isBalanced = irShift->numShifts == -irShiftS->numShifts;
+					break;
+				}
+			}
+			if(isBalanced)
+			{
+				for(unsigned int o=ti+1;o<s;o++)
+				{
+					pIRTokensVec[o]->offsetCells(irShift->numShifts);
+				}
+				pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
+				pIRTokensVec[s] = new IRTokenNoOp(pIRTokensVec[s]);
+			}
+		}
+	}
+}
 void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec)
 {
 	//Traverse backwards, to maintain iteration
@@ -266,7 +309,7 @@ void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec)
 void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 {
 	optimizeIRTokensMultiplyPass(pIRTokensVec);
-	
+	optimizeIRTokensOffsetShifts(pIRTokensVec);
 	
 	optimizeIRTokensKnownVals(pIRTokensVec);
 	//optimizeIRTokensKnownVals(pIRTokensVec);
