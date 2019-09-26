@@ -12,7 +12,7 @@ OBJS = $(patsubst %.cpp,$(OBJ_FOLDER)/%.o,$(SRCS))
 
 all: COMPILER
 
-CFLAGS = -std=$(STD_VER)
+CFLAGS = -std=$(STD_VER) -Wall
 LFLAGS = 
 
 

@@ -34,7 +34,7 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec)
 	addLineOfCode(code,"int data[tapeSize] = {};",curIndentLevel);
 	addLineOfCode(code,"unsigned int dataIndex = 0;",curIndentLevel);
 	addLineOfCode(code,"//Start program",curIndentLevel);
-	for(int i=0;i<pIRTokensVec.size();i++)
+	for(unsigned int i=0;i<pIRTokensVec.size();i++)
 	{
 		IRToken *irToken= pIRTokensVec[i];
 		curIndentLevel+=irToken->getPreIndentModifier();

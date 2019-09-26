@@ -17,7 +17,7 @@ class IRToken
 	{
 		return "UNKNOWN_IRTOKEN";
 	}
-	virtual std::string generateCode() const{}
+	virtual std::string generateCode() const;
 	virtual int getPreIndentModifier() const
 	{
 		return 0;
@@ -31,7 +31,7 @@ class IRTokenComment : public IRToken
 {
 	std::string commentStr;
 	public:
-	IRTokenComment(std::string str) : commentStr(str), IRToken()
+	IRTokenComment(std::string str) : IRToken(), commentStr(str)
 	{
 		
 	}
@@ -51,9 +51,9 @@ class IRTokenNoOp : public IRToken //Used for replacing IRTokens, while preservi
 {
 	IRToken *overridenIRToken;
 	public:
-	IRTokenNoOp() : overridenIRToken(nullptr), IRToken()
+	IRTokenNoOp() : IRToken(), overridenIRToken(nullptr)
 	{}
-	IRTokenNoOp(IRToken *deletedIr) : overridenIRToken(deletedIr), IRToken()
+	IRTokenNoOp(IRToken *deletedIr) : IRToken(), overridenIRToken(deletedIr)
 	{}
 	std::string getName() const override
 	{
@@ -75,10 +75,10 @@ class IRTokenMultiAdd : public IRToken
 	public:
 	int intVal;
 	int cellsAway;
-	IRTokenMultiAdd(int i): intVal(i), cellsAway(0), IRToken()
+	IRTokenMultiAdd(int i): IRToken(), intVal(i), cellsAway(0)
 	{
 	}
-	IRTokenMultiAdd(int i, int c): intVal(i), cellsAway(c), IRToken()
+	IRTokenMultiAdd(int i, int c): IRToken(), intVal(i), cellsAway(c)
 	{
 	}
 	std::string getName() const override
@@ -91,9 +91,7 @@ class IRTokenMultiShift : public IRToken
 {
 	public:
 	int numShifts;
-	IRTokenMultiShift(int i)
-	: numShifts(i),
-	IRToken()
+	IRTokenMultiShift(int i): IRToken(), numShifts(i)
 	{
 	}
 	std::string getName() const override
@@ -107,10 +105,10 @@ class IRTokenClear : public IRToken
 	public:
 	int setVal;
 	int cellsAway;
-	IRTokenClear(): setVal(0), cellsAway(0),IRToken()
+	IRTokenClear(): IRToken(), setVal(0), cellsAway(0)
 	{
 	}
-	IRTokenClear(int v, int c): setVal(v), cellsAway(c),IRToken()
+	IRTokenClear(int v, int c): IRToken(), setVal(v), cellsAway(c)
 	{
 	}
 	std::string getName() const override
@@ -122,8 +120,7 @@ class IRTokenClear : public IRToken
 class IRTokenLoopOpen : public IRToken
 {
 	public:
-	IRTokenLoopOpen()
-	: IRToken()
+	IRTokenLoopOpen() : IRToken()
 	{
 	}
 	std::string getName() const override
@@ -139,8 +136,7 @@ class IRTokenLoopOpen : public IRToken
 class IRTokenLoopClose : public IRToken
 {
 	public:
-	IRTokenLoopClose()
-	: IRToken()
+	IRTokenLoopClose() : IRToken()
 	{
 	}
 	std::string getName() const override
@@ -157,8 +153,7 @@ class IRTokenLoopClose : public IRToken
 class IRTokenIfOpen : public IRToken
 {
 	public:
-	IRTokenIfOpen()
-	: IRToken()
+	IRTokenIfOpen() : IRToken()
 	{
 	}
 	std::string getName() const override
@@ -175,8 +170,7 @@ class IRTokenIfClose : public IRToken
 {
 	public:
 	bool doClear;
-	IRTokenIfClose(bool _doClear)
-	: doClear(_doClear), IRToken()
+	IRTokenIfClose(bool _doClear) : IRToken(), doClear(_doClear)
 	{
 	}
 	std::string getName() const override
@@ -193,8 +187,7 @@ class IRTokenIfClose : public IRToken
 class IRTokenInput : public IRToken
 {
 	public:
-	IRTokenInput()
-	: IRToken()
+	IRTokenInput() : IRToken()
 	{
 	}
 	std::string getName() const override
@@ -210,7 +203,7 @@ class IRTokenPrintChar : public IRToken
 	IRTokenPrintChar(): IRToken()
 	{
 	}
-	IRTokenPrintChar(int c): knownCharValue(c), IRToken()
+	IRTokenPrintChar(int c): IRToken(), knownCharValue(c)
 	{
 	}
 	std::string getName() const override
@@ -236,8 +229,7 @@ class IRTokenPrintStr : public IRToken
 	public:
 	std::string str;
 	IRTokenPrintStr(std::string& s)
-	: str(s),
-	IRToken()
+	: IRToken(), str(s)
 	{
 	}
 	std::string generateCode() const override;
@@ -254,7 +246,7 @@ class IRTokenMultiply : public IRToken
 	int factor;
 	bool doClear;
 	IRTokenMultiply(int _cellsAway, int _factor) 
-	: cellsAway(_cellsAway), factor(_factor), IRToken(){}
+	: IRToken(), cellsAway(_cellsAway), factor(_factor){}
 	std::string getName() const override
 	{
 		return "IRTokenMultiply";

@@ -2,12 +2,12 @@
 #include "Environment.hpp"
 void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec)
 {
-	for(int ti=0;ti<pIRTokensVec.size();ti++)
+	for(unsigned int ti=0;ti<pIRTokensVec.size();ti++)
 	{
 		IRToken *pirToken = pIRTokensVec[ti];
 		if(pirToken->getName()=="IRTokenLoopOpen")
 		{
-			int w=ti+1;
+			unsigned int w=ti+1;
 			std::map<int,int> madds;
 			pirToken = pIRTokensVec[w];
 			bool isMultPattern=false;
@@ -52,7 +52,7 @@ void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec)
 				int noOpR;
 				int lastMultR;
 				bool hasLastMult=false;
-				for(int r=ti+1;r<pIRTokensVec.size();r++)
+				for(unsigned int r=ti+1;r<pIRTokensVec.size();r++)
 				{
 					IRTokenMultiAdd *madd = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[r]);
 					if(madd!=nullptr)
@@ -100,7 +100,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 {
 	Environment env;
 	int curIndex=0;
-	for(int ti=0;ti<pIRTokensVec.size();ti++)
+	for(unsigned int ti=0;ti<pIRTokensVec.size();ti++)
 	{
 		IRToken *irToken = pIRTokensVec[ti];
 		IRTokenMultiAdd *madd = dynamic_cast<IRTokenMultiAdd*>(irToken);
@@ -180,7 +180,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 			std::cout<<"Found irMult\n";
 			std::cout<<"Checking curIndex="<<curIndex<<"\n";
 			try //If factors are known, reduce to an add.
-			{
+			{/*
 				std::cout<<"Factor="<<irMult->factor<<"\n";
 				int knownFactor = env.knownCells.at(curIndex);
 				std::cout<<"knownFactor="<<knownFactor<<"\n";
@@ -189,6 +189,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 				pIRTokensVec[ti] = new IRTokenMultiAdd(result,irMult->cellsAway);
 				
 				ti--;continue;//Replaced token, so track it
+				*/
 			}catch(std::out_of_range& oor){}
 		}
 		IRTokenIfOpen *irIfOpen = dynamic_cast<IRTokenIfOpen*>(irToken);
