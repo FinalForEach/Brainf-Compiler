@@ -144,9 +144,8 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 	printIRTokens(pIRTokensVec);
 	optimizeIRTokens(pIRTokensVec, env);
 }
-void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
+void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec, Environment& env)
 {
-	return;
 	for(int ti=0;ti<pIRTokensVec.size();ti++)
 	{
 		IRToken *pirToken = pIRTokensVec[ti];
@@ -243,7 +242,10 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
 		
 	}
 }
-
+void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec, Environment& env)
+{
+	optimizeIRTokensMultiplyPass(pIRTokensVec, env);
+}
 void printIRTokens(std::vector<IRToken*>& pIRTokensVec)
 {
 	std::cout<<"{ ";
