@@ -129,7 +129,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		if(irLoopOpen!=nullptr)//Check for loop condition for dead-code removal
 		{
 			try
-			{
+			{/*
 				int knownCondition = env.knownCells.at(curIndex+irLoopOpen->cellsAway);
 				std::cout<<"curIndex="<<curIndex<<"\n";
 				std::cout<<"knownCells.at(curIndex)="<<knownCondition<<"\n";
@@ -157,7 +157,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 							}
 						}
 					}
-				}
+				}*/
 			}catch(std::out_of_range& oor){}
 			env.knownCells.clear();//Forget everything.
 			curIndex=0;//Make known cells relative to current position.
@@ -183,8 +183,8 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		{
 			try //If factors are known, reduce to an add.
 			{
-				
-				int knownFactor = env.knownCells.at(curIndex);
+				/*
+				int knownFactor = env.knownCells.at(curIndex+irMult->factorACellsAway);
 				std::cout<<"Found irMult\n";
 				std::cout<<"Checking curIndex="<<curIndex<<"\n";
 				std::cout<<"\tFactor="<<irMult->factor<<"\n";
@@ -194,6 +194,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 				pIRTokensVec[ti] = new IRTokenMultiAdd(result,irMult->cellsAway);
 				
 				ti--;continue;//Replaced token, so track it
+				*/
 				
 			}catch(std::out_of_range& oor){}
 		}
@@ -202,6 +203,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		{
 			try
 			{
+				/*
 				std::cout<<"irIfOpen->cellsAway="<<irIfOpen->cellsAway<<"\n";
 				int knownCondition = env.knownCells.at(curIndex+irIfOpen->cellsAway);
 				if(knownCondition==0)//Known false, so remove dead code.
@@ -249,7 +251,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 							}
 						}
 					}
-				}
+				}*/
 			}catch(std::out_of_range& oor){}
 		}
 	}
@@ -317,7 +319,7 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	optimizeIRTokensMultiplyPass(pIRTokensVec);
 	optimizeIRTokensOffsetShifts(pIRTokensVec);
 	
-	//optimizeIRTokensKnownVals(pIRTokensVec);
+	optimizeIRTokensKnownVals(pIRTokensVec);
 	
 	//ridOfNoOps(pIRTokensVec);
 	

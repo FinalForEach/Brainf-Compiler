@@ -65,6 +65,8 @@ class IRTokenNoOp : public IRToken //Used for replacing IRTokens, while preservi
 		if(overridenIRToken!=nullptr)
 		{
 			std::string code = "//Overwritten ";
+			code+=overridenIRToken->generateCode();
+			code+=" //";
 			code+=overridenIRToken->getName();
 			return code;
 		}

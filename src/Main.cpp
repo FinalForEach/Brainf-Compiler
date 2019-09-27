@@ -10,6 +10,7 @@ int main(int argc, char **argv)
 	if(argc<=1)
 	{
 		std::cerr<<"Need to pass in a file as an argument\n";
+		std::cout<<"Usage:\n\t"<<argv[0]<<" inputFile [outputFile]\n";
 		
 		exit(EXIT_FAILURE);
 	}
@@ -56,9 +57,17 @@ int main(int argc, char **argv)
 	
 	std::string code = generateCode(pIRTokensVec);
 	//std::cout<<code;
-	
+	std::string outputFilename = "";
+	if(argc>=3)
+	{
+		outputFilename=argv[2];
+	}
+	if(outputFilename=="")
+	{
+		outputFilename="./output.cpp";
+	}
 	std::ofstream outputFile;
-	outputFile.open("./output.cpp");
+	outputFile.open(outputFilename);
 	outputFile<<code;
 	outputFile.close();
 	

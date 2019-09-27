@@ -40,10 +40,29 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec)
 	std::string code = "//Automatically generated code.\n";
 	code+="#include <cstdlib>\n";
 	code+="#include <iostream>\n";
+	
+	//Debug functions
+	code+="#define DUMP_DATA std::cout<<\"\\n\"<<__LINE__<<\":\t\"; dumpData(data,tapeSize);\n";
+	
+	code+="int dumpData(int data[], int tapeSize){\n";
+	int curIndentLevel=1;
+		addLineOfCode(code,"int maxWritten=0;",curIndentLevel);
+		addLineOfCode(code,"for(int i=0;i<tapeSize;i++){",curIndentLevel);
+		addLineOfCode(code,"if(data[i]!=0){maxWritten=i;}",curIndentLevel+1);
+		addLineOfCode(code,"}",curIndentLevel);
+		addLineOfCode(code,"std::cout<<\"Data=[\";",curIndentLevel);
+		addLineOfCode(code,"for(int i=0;i<=maxWritten;i++){",curIndentLevel);
+		addLineOfCode(code,"std::cout<<std::to_string(i)<<\":\"<<data[i]<<\", \";",curIndentLevel+1);
+		addLineOfCode(code,"}",curIndentLevel);
+		addLineOfCode(code,"std::cout<<\"]\\n\";",curIndentLevel);
+	code+="}\n";
+	curIndentLevel--;
+	
+	
+	//Main function
 	code+="int main(int argc, char **argv) \n";
 	code+="{\n";
-	
-	int curIndentLevel=1;
+	curIndentLevel++;
 	addLineOfCode(code,"//Setup data cells",curIndentLevel);
 	addLineOfCode(code,"const unsigned int tapeSize = 30000;",curIndentLevel);
 	addLineOfCode(code,"int data[tapeSize] = {};",curIndentLevel);
