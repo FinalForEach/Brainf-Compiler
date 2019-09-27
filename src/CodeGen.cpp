@@ -74,29 +74,15 @@ std::string IRTokenMultiAdd::generateCode() const
 {
 	if(intVal!=0)
 	{
-		std::string code = "data[";
-		if(cellsAway!=0)
-		{
-			if(cellsAway>0)
-			{
-				code += "dataIndex+";
-				code+=std::to_string(cellsAway);
-			}else
-			{
-				code += "dataIndex-";
-				code+=std::to_string(-cellsAway);
-			}
-		}else
-		{
-			code += "dataIndex";
-		}
+		std::string code = getData(cellsAway);
+	
 		if(intVal>0)
 		{
-			code+="]+=";			
+			code+="+=";			
 			code+=std::to_string(intVal);
 		}else
 		{
-			code+="]-=";
+			code+="-=";
 			code+=std::to_string(-intVal);
 		}
 		code+=";";
@@ -131,13 +117,8 @@ std::string IRTokenMultiShift::generateCode() const
 }
 std::string IRTokenClear::generateCode() const
 {
-	std::string code = "data[dataIndex";
-	if(cellsAway>0)
-	{
-		code+="+";
-	}
-	if(cellsAway!=0)code+=std::to_string(cellsAway);
-	code+="]=";
+	std::string code = getData(cellsAway);
+	code+="=";
 	code+=std::to_string(setVal);
 	code+=";";
 	return code;	
@@ -178,10 +159,10 @@ std::string IRTokenInput::generateCode() const
 }
 std::string IRTokenPrintChar::generateCode() const
 {
+	std::string code = "std::cout<<";
 	if(hasKnownCharValue())
 	{
 		int c = knownCharValue.value();
-		std::string code = "std::cout<<";
 		if(c >= 32 && c <= 126)
 		{
 			code+="'";
@@ -206,13 +187,18 @@ std::string IRTokenPrintChar::generateCode() const
 			return code;
 		}
 	}
-	return "std::cout<<(char)data[dataIndex];";	
+	code+="(char)";
+	code+=getData(cellsAway);
+	code+=";";
+	return code;	
 }
 
 std::string IRTokenMultiply::generateCode() const
 {
 	std::string code =getData(cellsAway);
-	code+="+=data[dataIndex] * ";
+	code+="+=";
+	code+=getData(factorACellsAway);
+	code+=" * ";
 	code+=std::to_string(factor);
 	code+=";";
 	if(doClear){

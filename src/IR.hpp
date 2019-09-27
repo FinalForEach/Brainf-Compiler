@@ -224,10 +224,11 @@ class IRTokenPrintChar : public IRToken
 {
 	public:
 	std::optional<int> knownCharValue;
-	IRTokenPrintChar(): IRToken()
+	int cellsAway;//Not required if char known
+	IRTokenPrintChar(): IRToken(), cellsAway(0)
 	{
 	}
-	IRTokenPrintChar(int c): IRToken(), knownCharValue(c)
+	IRTokenPrintChar(int c): IRToken(), knownCharValue(c), cellsAway(0)
 	{
 	}
 	std::string getName() const override
@@ -235,6 +236,11 @@ class IRTokenPrintChar : public IRToken
 		return "IRTokenPrintChar";
 	}
 	std::string generateCode() const override;
+	
+	void offsetCells(int _cellsAway) override
+	{
+		cellsAway+=_cellsAway;
+	}
 	
 	
 	bool hasKnownCharValue() const
@@ -267,10 +273,11 @@ class IRTokenMultiply : public IRToken
 {
 	public:
 	int cellsAway;
+	int factorACellsAway;
 	int factor;
 	bool doClear;
 	IRTokenMultiply(int _cellsAway, int _factor) 
-	: IRToken(), cellsAway(_cellsAway), factor(_factor){}
+	: IRToken(), cellsAway(_cellsAway),factorACellsAway(0), factor(_factor){}
 	std::string getName() const override
 	{
 		return "IRTokenMultiply";
@@ -279,6 +286,7 @@ class IRTokenMultiply : public IRToken
 	void offsetCells(int _cellsAway) override
 	{
 		cellsAway+=_cellsAway;
+		factorACellsAway+=_cellsAway;
 	}
 };
 

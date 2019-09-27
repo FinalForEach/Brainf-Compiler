@@ -48,6 +48,7 @@ void tokenizeString(std::string& str, std::vector<Token*>& pTokensVec)
 		
 		pTokensVec.push_back(pToken);
 	}
+	pTokensVec.push_back(new TokenEnd());
 }
 void printTokens( std::vector<Token*>& pTokensVec)
 {

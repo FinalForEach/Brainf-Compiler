@@ -33,8 +33,6 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 	std::map<int,bool> cellClears;
 	int shiftCount = 0;
 	
-	int knownValue=0;
-	bool doesKnowValue=true;
 	std::string printStr = "";
 	
 	std::string commentStr = "";
@@ -75,7 +73,6 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 				if(pTokensVec[ti+2]->getName() == "CLOSE_BRACKET"){
 					cellClears[shiftCount]=true;
 					cellAdds[shiftCount]=0;//Ignore adds before clears.
-					knownValue=0;//Now know value at current cell to be zero
 					ti+=2;//Consume tokens
 					continue;
 				}
@@ -87,40 +84,21 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 		{
 			cellAdds.try_emplace(shiftCount,0);//Add mapping if not yet existing
 			cellAdds[shiftCount]++;
-			if(shiftCount==0)knownValue++;
 		}
 		if(pToken->getName() == "MINUS")
 		{
 			cellAdds.try_emplace(shiftCount,0);//Add mapping if not yet existing
 			cellAdds[shiftCount]--;
-			if(shiftCount==0)knownValue--;
 		}
 		if(pToken->getName() == "SHIFT_RIGHT")shiftCount++;
 		if(pToken->getName() == "SHIFT_LEFT")shiftCount--;
 
 		
-		if(doesKnowValue && pToken->getName() == "PERIOD")
-		{
-			if(knownValue >= 32 && knownValue <= 126)
-			{
-				printStr+=(char)knownValue;
-			}else
-			{
-				if(printStr!="")
-				{
-					IRTokenPrintStr *irPrintStr = new IRTokenPrintStr(printStr);
-					pIRTokensVec.push_back(irPrintStr);
-					printStr="";
-				}
-				IRTokenPrintChar *irPrintChar = new IRTokenPrintChar(knownValue);
-				pIRTokensVec.push_back(irPrintChar);
-			}
-			
-		}
 		if(pToken->getName() == "OPEN_BRACKET"
 			|| pToken->getName() == "CLOSE_BRACKET"
 			|| pToken->getName() == "COMMA"
-			|| (pToken->getName() == "PERIOD" && !doesKnowValue))
+			|| (pToken->getName() == "PERIOD")
+			|| pToken->getName() == "END_TOKEN")
 		{
 			addSectionIRTokens(pIRTokensVec, cellAdds, cellClears);
 			
@@ -130,7 +108,6 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 			}
 			
 			shiftCount = 0;
-			doesKnowValue=false;
 			
 			if(printStr!="")
 			{
@@ -138,7 +115,7 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 				pIRTokensVec.push_back(irPrintChar);
 				printStr="";
 			}
-			if((pToken->getName() == "PERIOD" && !doesKnowValue))
+			if(pToken->getName() == "PERIOD")
 			{
 				IRTokenPrintChar *irPrintChar = new IRTokenPrintChar();
 				pIRTokensVec.push_back(irPrintChar);

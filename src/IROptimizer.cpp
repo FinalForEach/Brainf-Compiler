@@ -121,7 +121,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		IRTokenMultiShift *mshift = dynamic_cast<IRTokenMultiShift*>(irToken);
 		if(mshift!=nullptr)
 		{
-			curIndex+=mshift->numShifts;
+			//curIndex+=mshift->numShifts;
 			env.knownCells.clear();
 		}
 		IRTokenLoopOpen *irLoopOpen = dynamic_cast<IRTokenLoopOpen*>(irToken);
@@ -130,7 +130,9 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		{
 			try
 			{
-				int knownCondition = env.knownCells.at(curIndex);
+				int knownCondition = env.knownCells.at(curIndex+irLoopOpen->cellsAway);
+				std::cout<<"curIndex="<<curIndex<<"\n";
+				std::cout<<"knownCells.at(curIndex)="<<knownCondition<<"\n";
 				if(knownCondition==0)
 				{
 					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
@@ -200,7 +202,8 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		{
 			try
 			{
-				int knownCondition = env.knownCells.at(curIndex);
+				std::cout<<"irIfOpen->cellsAway="<<irIfOpen->cellsAway<<"\n";
+				int knownCondition = env.knownCells.at(curIndex+irIfOpen->cellsAway);
 				if(knownCondition==0)//Known false, so remove dead code.
 				{
 					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
@@ -265,7 +268,6 @@ void optimizeIRTokensOffsetShifts(std::vector<IRToken*>& pIRTokensVec)
 			unsigned int s=ti+1;
 			for(;s<pIRTokensVec.size();s++)
 			{
-				
 				IRToken *irTokenS = pIRTokensVec[s];
 				if(dynamic_cast<IRTokenLoopOpen*>(irTokenS))
 					loopCount++;
@@ -275,6 +277,10 @@ void optimizeIRTokensOffsetShifts(std::vector<IRToken*>& pIRTokensVec)
 					ifCount++;
 				if(dynamic_cast<IRTokenIfClose*>(irTokenS))
 					ifCount--;
+				if(ifCount<0 || loopCount<0)
+				{
+					break;//Out of scope
+				}
 				IRTokenMultiShift *irShiftS = dynamic_cast<IRTokenMultiShift*>(irTokenS);
 				if(irShiftS!=nullptr && loopCount==0 && ifCount==0)
 				{
@@ -311,8 +317,8 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	optimizeIRTokensMultiplyPass(pIRTokensVec);
 	optimizeIRTokensOffsetShifts(pIRTokensVec);
 	
-	optimizeIRTokensKnownVals(pIRTokensVec);
 	//optimizeIRTokensKnownVals(pIRTokensVec);
 	
-	ridOfNoOps(pIRTokensVec);
+	//ridOfNoOps(pIRTokensVec);
+	
 }

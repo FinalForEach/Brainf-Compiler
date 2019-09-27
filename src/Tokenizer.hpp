@@ -16,7 +16,15 @@ class Token
 		return "UNKNOWN_TOKEN";
 	}
 };
-
+class TokenEnd : public Token
+{
+	public:
+	TokenEnd() : Token('\0'){}
+	std::string getName() const override
+	{
+		return "END_TOKEN";
+	}
+};
 class TokenPlus : public Token
 {
 	public:
