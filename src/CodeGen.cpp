@@ -35,14 +35,18 @@ std::string& addLineOfCode(std::string& fileStr, const std::string& code, int in
 	
 	return fileStr;
 }
-std::string generateCode(std::vector<IRToken*>& pIRTokensVec)
+std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outputFilename)
 {
 	std::string code = "//Automatically generated code.\n";
 	code+="#include <cstdlib>\n";
 	code+="#include <iostream>\n";
+	code+="#include <fstream>\n";
+	code+="#include <string>\n";
 	
 	//Debug functions
+	code+="#define FILENAME \"";code+=outputFilename;code+="\"\n";
 	code+="#define DUMP_DATA std::cout<<\"\\n\"<<__LINE__<<\":\t\"; dumpData(data,tapeSize);\n";
+	code+="#define DUMP_DATA_BF dumpDataToBF(data,tapeSize);std::cout<< std::string(\"DUMPED DATA AS BF AT LINE \")+std::to_string(__LINE__)+\"; EXITING.\\n\"; return 1;\n";
 	
 	code+="int dumpData(int data[], int tapeSize){\n";
 	int curIndentLevel=1;
@@ -57,7 +61,20 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec)
 		addLineOfCode(code,"std::cout<<\"]\\n\";",curIndentLevel);
 	code+="}\n";
 	curIndentLevel--;
-	
+	addLineOfCode(code,"void dumpDataToBF(int data[], int tapeSize){",curIndentLevel++);
+	addLineOfCode(code,"int maxWritten=0;",curIndentLevel);
+	addLineOfCode(code,"for(int i=0;i<tapeSize;i++){if(data[i]!=0){maxWritten=i;}}",curIndentLevel);
+	addLineOfCode(code,"std::string bfOutStr = \"\";",curIndentLevel);
+	addLineOfCode(code,"for(int i=0;i<=maxWritten;i++){",curIndentLevel++);
+	addLineOfCode(code,"int val = data[i];",curIndentLevel);
+	addLineOfCode(code,"if(val>0){for(int v=0;v<val;v++){bfOutStr+=\"+\";}}",curIndentLevel);
+	addLineOfCode(code,"if(val<0){for(int v=0;v<-val;v++){bfOutStr+=\"-\";}}",curIndentLevel);
+	addLineOfCode(code,"if(i!=maxWritten){bfOutStr+=\">\";}",curIndentLevel--);
+	addLineOfCode(code,"}",curIndentLevel);
+	addLineOfCode(code,"for(int i=0;i<=maxWritten;i++){bfOutStr+=\"<\";}//Rewind tape for portability",curIndentLevel);
+	addLineOfCode(code,"std::ofstream outputFile(FILENAME \"-data-dump.b\", std::ofstream::out);",curIndentLevel);
+	addLineOfCode(code,"outputFile<<bfOutStr;outputFile.close();",curIndentLevel--);
+	addLineOfCode(code,"}",curIndentLevel);
 	
 	//Main function
 	code+="int main(int argc, char **argv) \n";

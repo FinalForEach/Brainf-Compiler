@@ -24,7 +24,16 @@ int main(int argc, char **argv)
 		inputFile.close();
 		exit(EXIT_FAILURE);
 	}
-		
+	
+	std::string outputFilename = "";
+	if(argc>=3)
+	{
+		outputFilename=argv[2];
+	}
+	if(outputFilename=="")
+	{
+		outputFilename="./output.cpp";
+	}
 	std::string inputStr = loadStrFromFile(inputFile);
 	
 	inputFile.close();
@@ -55,17 +64,9 @@ int main(int argc, char **argv)
 	std::cout<<"\n";
 	std::cout<<"Generating code...\n";
 	
-	std::string code = generateCode(pIRTokensVec);
+	std::string code = generateCode(pIRTokensVec,outputFilename);
 	//std::cout<<code;
-	std::string outputFilename = "";
-	if(argc>=3)
-	{
-		outputFilename=argv[2];
-	}
-	if(outputFilename=="")
-	{
-		outputFilename="./output.cpp";
-	}
+
 	std::ofstream outputFile;
 	outputFile.open(outputFilename);
 	outputFile<<code;
