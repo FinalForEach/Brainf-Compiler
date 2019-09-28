@@ -176,26 +176,31 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		IRTokenMultiply *irMult = dynamic_cast<IRTokenMultiply*>(irToken);
 		if(irMult!=nullptr)
 		{
-			try //If factors are known, reduce to an add.
+			/*try //If factors are known, reduce to an add.
 			{
 				
-				int knownFactor = env.knownCells.at(curRelIndex+irMult->factorACellsAway);
-				std::cout<<"Found irMult\n";
-				std::cout<<"Checking curRelIndex="<<curRelIndex<<"\n";
+				const int knownFactor = env.knownCells.at(curRelIndex+irMult->factorACellsAway);
+				std::cout<<"Found irMult#"<<irMult->getIRTokenID()<<"\n";
+				std::cout<<"Checking curRelIndex="<<curRelIndex+irMult->factorACellsAway<<"\n";
+				std::cout<<"\t"<<env.knownCellsToString()<<"\n";
 				std::cout<<"\tFactor="<<irMult->factor<<"\n";
 				std::cout<<"\tknownFactor="<<knownFactor<<"\n";
-				int result = knownFactor * irMult->factor;
+				const int result = knownFactor * irMult->factor;
 				std::cout<<"\tresult="<<result<<"\n";
 				if(result==0)
 				{
 					std::cout<<"\tWarning, result is 0\n";
 				}
 				pIRTokensVec[ti] = new IRTokenMultiAdd(result,irMult->cellsAway);
-				
+				std::cout<<"\tReplaced with IRTokenMultiAdd#"<<pIRTokensVec[ti]->getIRTokenID()<<"\n";
 				ti--;continue;//Replaced token, so track it
 				
 				
-			}catch(std::out_of_range& oor){}
+			}catch(std::out_of_range& oor)
+			{
+				//If unknown factors, mark current cell as unknown.
+				env.knownCells.erase(curRelIndex+irMult->cellsAway);
+			}*/
 		}
 		IRTokenIfOpen *irIfOpen = dynamic_cast<IRTokenIfOpen*>(irToken);
 		if(irIfOpen!=nullptr)
@@ -320,6 +325,6 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	
 	optimizeIRTokensKnownVals(pIRTokensVec);
 	
-	//ridOfNoOps(pIRTokensVec);
+	ridOfNoOps(pIRTokensVec);
 	
 }

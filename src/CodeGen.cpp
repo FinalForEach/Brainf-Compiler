@@ -69,7 +69,7 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 	addLineOfCode(code,"int val = data[i];",curIndentLevel);
 	addLineOfCode(code,"if(val>0){for(int v=0;v<val;v++){bfOutStr+=\"+\";}}",curIndentLevel);
 	addLineOfCode(code,"if(val<0){for(int v=0;v<-val;v++){bfOutStr+=\"-\";}}",curIndentLevel);
-	addLineOfCode(code,"if(i!=maxWritten){bfOutStr+=\">\";}",curIndentLevel--);
+	addLineOfCode(code,"bfOutStr+=\">\";",curIndentLevel--);
 	addLineOfCode(code,"}",curIndentLevel);
 	addLineOfCode(code,"for(int i=0;i<=maxWritten;i++){bfOutStr+=\"<\";}//Rewind tape for portability",curIndentLevel);
 	addLineOfCode(code,"std::ofstream outputFile(FILENAME \"-data-dump.b\", std::ofstream::out);",curIndentLevel);
@@ -234,15 +234,7 @@ std::string IRTokenPrintChar::generateCode() const
 
 std::string IRTokenMultiply::generateCode() const
 {
-	std::string code =getData(cellsAway);
-	code+="+=";
-	code+=getData(factorACellsAway);
-	code+=" * ";
-	code+=std::to_string(factor);
-	code+=";";
-	if(doClear){
-		code+= "data[dataIndex]=0;";//Clears the cell
-	}
+	std::string code =getData(cellsAway)+"+="+getData(factorACellsAway)+" * "+std::to_string(factor)+";";
 	return code;
 }
 

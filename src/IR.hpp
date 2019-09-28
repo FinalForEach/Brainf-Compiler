@@ -286,7 +286,6 @@ class IRTokenMultiply : public IRToken
 	int cellsAway;
 	int factorACellsAway;
 	int factor;
-	bool doClear;
 	IRTokenMultiply(int _cellsAway, int _factor) 
 	: IRToken(), cellsAway(_cellsAway),factorACellsAway(0), factor(_factor){}
 	std::string getName() const override
