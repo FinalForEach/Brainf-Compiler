@@ -110,14 +110,12 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 			{
 				int& cell = env.knownCells.at(madd->cellsAway + curRelIndex);
 				cell+=madd->intVal;
-				std::cout<<"Added madd(" <<std::to_string(madd->cellsAway + curRelIndex)<<") to "<< madd->intVal<<"#"<<madd->getIRTokenID()<<"\n";
 			}catch(std::out_of_range& oor){}
 		}
 		IRTokenClear *irClear = dynamic_cast<IRTokenClear*>(irToken);
 		if(irClear!=nullptr)
 		{
 			env.knownCells[irClear->cellsAway + curRelIndex]=irClear->setVal;
-			std::cout<<"Set irClear(" <<std::to_string(irClear->cellsAway + curRelIndex) <<") to "<<irClear->setVal<<"#"<<irClear->getIRTokenID()<<"\n";
 		}
 		IRTokenMultiShift *mshift = dynamic_cast<IRTokenMultiShift*>(irToken);
 		if(mshift!=nullptr)
@@ -131,14 +129,9 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		{
 			try
 			{
-				std::cout<<"Checking irLoopOpen#"<<irLoopOpen->getIRTokenID()<<"\n";
 				int knownCondition = env.knownCells.at(curRelIndex+irLoopOpen->cellsAway);
-				std::cout<<env.knownCellsToString()<<"\n";
-				std::cout<<"\tcurRelIndex="<<(curRelIndex+irLoopOpen->cellsAway)<<"\n";
-				std::cout<<"\tknownCondition="<<knownCondition<<"\n";
 				if(knownCondition==0)
 				{
-					std::cout<<"\nDEAD CODE. REMOVING\n\n";
 					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
 					int loopCount=1;
 					for(unsigned int l=ti+1;l<pIRTokensVec.size();l++)
@@ -165,7 +158,6 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 			}catch(std::out_of_range& oor){}
 			env.knownCells.clear();//Forget everything.
 			curRelIndex=0;//Make known cells relative to current position.
-			std::cout<<"Forgot everything irLoopOpen#"<<irLoopOpen->getIRTokenID()<<"\n";
 		}
 		if(irLoopClose!=nullptr)//In or exiting a loop.
 		{
@@ -173,7 +165,6 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 						
 			//env.knownCells[curRelIndex]=0;//Current must be zero to exit loop
 			curRelIndex=0;//Make known cells relative to current position.
-			std::cout<<"Forgot everything. irLoopClose#"<<irLoopClose->getIRTokenID()<<"\n";
 		}
 		IRTokenInput *irInput = dynamic_cast<IRTokenInput*>(irToken);
 		if(irInput!=nullptr)//Cannot know user input.
@@ -206,11 +197,9 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		{
 			try
 			{
-				
-				std::cout<<"irIfOpen->cellsAway="<<irIfOpen->cellsAway<<"\n";
 				int knownCondition = env.knownCells.at(curRelIndex+irIfOpen->cellsAway);
 				if(knownCondition==0)//Known false, so remove dead code.
-				{/*
+				{
 					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
 					int ifCount=1;
 					for(unsigned int l=ti+1;l<pIRTokensVec.size();l++)
@@ -232,9 +221,9 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 								break;
 							}
 						}
-					}*/
+					}
 				}else //Known true, so rid of brackets
-				{/*
+				{
 					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);//Redundant code
 					int ifCount=1;
 					for(unsigned int l=ti+1;l<pIRTokensVec.size();l++)
@@ -253,7 +242,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 								break;
 							}
 						}
-					}*/
+					}
 				}
 			}catch(std::out_of_range& oor){}
 		}
@@ -330,6 +319,6 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	
 	optimizeIRTokensKnownVals(pIRTokensVec);
 	
-	//ridOfNoOps(pIRTokensVec);
+	ridOfNoOps(pIRTokensVec);
 	
 }
