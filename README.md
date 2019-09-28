@@ -9,7 +9,7 @@ Namely:
 * Adds and shifts are postponed until necessary, as to combine as many as possible
 * Clears, e.g. `[-]` or `[+]`and Multiplies are no longer loops.
 * Multiplies with known factors are reduced to adds
-* Dead-code elimiation
+* Dead-code elimination
 * Balanced shifts are pre-calculated into offsets, e.g. >>>+<<< becomes data[dataIndex+3]+=1;
 
 Test cases based on:

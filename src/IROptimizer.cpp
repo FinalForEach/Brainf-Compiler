@@ -127,11 +127,13 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		IRTokenLoopClose *irLoopClose = dynamic_cast<IRTokenLoopClose*>(irToken);
 		if(irLoopOpen!=nullptr)//Check for loop condition for dead-code removal
 		{
+			bool isDeadCode=false;
 			try
 			{
 				int knownCondition = env.knownCells.at(curRelIndex+irLoopOpen->cellsAway);
 				if(knownCondition==0)
 				{
+					isDeadCode=true;
 					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
 					int loopCount=1;
 					for(unsigned int l=ti+1;l<pIRTokensVec.size();l++)
@@ -156,11 +158,16 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 					}
 				}
 			}catch(std::out_of_range& oor){}
-			env.knownCells.clear();//Forget everything.
-			curRelIndex=0;//Make known cells relative to current position.
+			if(!isDeadCode)
+			{
+				//std::cout<<"Forgot everything: loopOpen#"<<irLoopOpen->getIRTokenID()<<"\n";
+				env.knownCells.clear();//Forget everything.
+				curRelIndex=0;//Make known cells relative to current position.
+			}
 		}
 		if(irLoopClose!=nullptr)//In or exiting a loop.
 		{
+			//std::cout<<"Forgot everything: loopClose#"<<irLoopClose->getIRTokenID()<<"\n";
 			env.knownCells.clear();//Forget everything.
 						
 			//env.knownCells[curRelIndex]=0;//Current must be zero to exit loop
@@ -197,9 +204,12 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		{
 			try
 			{
+				std::cout<<"Checking irIfOpen#"<<irIfOpen->getIRTokenID()<<" @ "<<std::to_string(curRelIndex+irIfOpen->cellsAway)<<"\n";
+				std::cout<<"\t"<<env.knownCellsToString()<<"\n";
 				int knownCondition = env.knownCells.at(curRelIndex+irIfOpen->cellsAway);
 				if(knownCondition==0)//Known false, so remove dead code.
 				{
+					std::cout<<"\tKnown false\n";
 					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
 					int ifCount=1;
 					for(unsigned int l=ti+1;l<pIRTokensVec.size();l++)
@@ -224,6 +234,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 					}
 				}else //Known true, so rid of brackets
 				{
+					std::cout<<"\tKnown true\n";
 					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);//Redundant code
 					int ifCount=1;
 					for(unsigned int l=ti+1;l<pIRTokensVec.size();l++)
@@ -244,7 +255,10 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 						}
 					}
 				}
-			}catch(std::out_of_range& oor){}
+			}catch(std::out_of_range& oor)
+			{
+				std::cout<<"\tUnknown value\n";
+			}
 		}
 		if(irIfClose!=nullptr)
 		{
