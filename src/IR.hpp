@@ -7,11 +7,16 @@
 
 
 
+static int numIrTokensInitialized=0;
 
 class IRToken
 {
+	int irTokenID;
 	public:
-	IRToken(){}
+	IRToken()
+	{
+		irTokenID=numIrTokensInitialized++;
+	}
 	~IRToken(){}
 	virtual std::string getName() const
 	{
@@ -27,6 +32,10 @@ class IRToken
 		return 0;
 	}
 	virtual void offsetCells(int _cellsAway){}
+	int getIRTokenID()
+	{
+		return irTokenID;
+	}
 };
 class IRTokenComment : public IRToken
 {

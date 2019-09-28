@@ -115,14 +115,12 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		IRTokenClear *irClear = dynamic_cast<IRTokenClear*>(irToken);
 		if(irClear!=nullptr)
 		{
-			//env.knownCells.clear();
 			env.knownCells[irClear->cellsAway + curRelIndex]=irClear->setVal;
 		}
 		IRTokenMultiShift *mshift = dynamic_cast<IRTokenMultiShift*>(irToken);
 		if(mshift!=nullptr)
 		{
 			curRelIndex+=mshift->numShifts;
-			//env.knownCells.clear();
 		}
 		IRTokenLoopOpen *irLoopOpen = dynamic_cast<IRTokenLoopOpen*>(irToken);
 		IRTokenLoopClose *irLoopClose = dynamic_cast<IRTokenLoopClose*>(irToken);
@@ -187,7 +185,11 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 				std::cout<<"\tFactor="<<irMult->factor<<"\n";
 				std::cout<<"\tknownFactor="<<knownFactor<<"\n";
 				int result = knownFactor * irMult->factor;
-				
+				std::cout<<"\tresult="<<result<<"\n";
+				if(result==0)
+				{
+					std::cout<<"\tWarning, result is 0\n";
+				}
 				pIRTokensVec[ti] = new IRTokenMultiAdd(result,irMult->cellsAway);
 				
 				ti--;continue;//Replaced token, so track it

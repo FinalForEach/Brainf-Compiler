@@ -96,7 +96,10 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 		if(addTokenComment)
 		{
 			addLineOfCode(code,"// IRToken: ",0,false);
-			addLineOfCode(code,irToken->getName(),0,true);
+			addLineOfCode(code,irToken->getName(),0,false);
+			addLineOfCode(code,"#",0,false);
+			addLineOfCode(code,std::to_string(irToken->getIRTokenID()),0,true);
+			
 		}
 		curIndentLevel+=irToken->getPostIndentModifier();
 	}
