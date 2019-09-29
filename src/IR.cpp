@@ -1,7 +1,7 @@
 #include "IR.hpp"
 #include <map>
 #include "Environment.hpp"
-
+int numIrTokensInitialized=0;
 void addSectionIRTokens(std::vector<IRToken*>& pIRTokensVec, 
 	std::map<int,int>& cellAdds, std::map<int,bool>& cellClears)
 {

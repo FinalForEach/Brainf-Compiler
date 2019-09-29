@@ -83,7 +83,7 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 	addLineOfCode(code,"//Setup data cells",curIndentLevel);
 	addLineOfCode(code,"const unsigned int tapeSize = 30000;",curIndentLevel);
 	addLineOfCode(code,"int data[tapeSize] = {};",curIndentLevel);
-	addLineOfCode(code,"unsigned int dataIndex = 0;",curIndentLevel);
+	addLineOfCode(code,"register unsigned int dataIndex = 0;",curIndentLevel);
 	addLineOfCode(code,"//Start program",curIndentLevel);
 	for(unsigned int i=0;i<pIRTokensVec.size();i++)
 	{
@@ -117,21 +117,17 @@ std::string IRTokenMultiAdd::generateCode() const
 	
 		if(intVal>0)
 		{
-			code+="+=";			
-			code+=std::to_string(intVal);
+			code+="+="+std::to_string(intVal);
 		}else
 		{
-			code+="-=";
-			code+=std::to_string(-intVal);
+			code+="-="+std::to_string(-intVal);
 		}
 		code+=";";
 		return code;
 	}else
 	{
-		std::string code = "//Would have added ";
-		code+=std::to_string(intVal);
-		code+=" to ";
-		code+=getData(cellsAway);
+		std::string code = "//Would have added "+std::to_string(intVal)
+			+" to "+getData(cellsAway);
 		return code;
 	}
 	
@@ -141,16 +137,10 @@ std::string IRTokenMultiShift::generateCode() const
 	std::string code = "";
 	if(numShifts>0)
 	{
-		code+="dataIndex+=";
-		code+=std::to_string(numShifts);
-		code+=";";
-		//code+="if(dataIndex>=tapeSize)dataIndex%=tapeSize;";
+		code+="dataIndex+="+std::to_string(numShifts)+";";
 	}else
 	{
-		code+="dataIndex-=";
-		code+=std::to_string(-numShifts);
-		code+=";";
-		//code+="if(dataIndex<0)dataIndex=tapeSize+dataIndex;";
+		code+="dataIndex-="+std::to_string(-numShifts)+";";
 	}
 	return code;
 }
@@ -198,7 +188,8 @@ std::string IRTokenInput::generateCode() const
 }
 std::string IRTokenPrintChar::generateCode() const
 {
-	std::string code = "std::cout<<";
+	//std::string code = "std::cout<<";
+	std::string code = "putchar(";
 	if(hasKnownCharValue())
 	{
 		int c = knownCharValue.value();
@@ -216,19 +207,19 @@ std::string IRTokenPrintChar::generateCode() const
 				code+=c;
 				break;
 			}
-			code+="';";
+			code+="');";
 			return code;
 		}else
 		{
-			code+="(char)";
+			//code+="(char)";
 			code+=std::to_string((int)c);
-			code+=";";
+			code+=");";
 			return code;
 		}
 	}
-	code+="(char)";
+	//code+="(char)";
 	code+=getData(cellsAway);
-	code+=";";
+	code+=");";
 	return code;	
 }
 

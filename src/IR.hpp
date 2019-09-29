@@ -7,11 +7,16 @@
 
 
 
-static int numIrTokensInitialized=0;
+extern int numIrTokensInitialized;
 
 class IRToken
 {
+	protected:
 	int irTokenID;
+	void setIRTokenID(int i)
+	{
+		irTokenID=i;
+	}
 	public:
 	IRToken()
 	{
@@ -66,9 +71,17 @@ class IRTokenNoOp : public IRToken //Used for replacing IRTokens, while preservi
 	IRToken *overridenIRToken;
 	public:
 	IRTokenNoOp() : IRToken(), overridenIRToken(nullptr)
-	{}
+	{
+	}
 	IRTokenNoOp(IRToken *deletedIr) : IRToken(), overridenIRToken(deletedIr)
-	{}
+	{
+		//Keep the id the same as the overriden one, for difference checking.
+		setIRTokenID(overridenIRToken->getIRTokenID());
+		if(dynamic_cast<IRTokenNoOp*>(deletedIr)==nullptr)
+		{
+			numIrTokensInitialized--;	
+		}
+	}
 	std::string getName() const override
 	{
 		return "IRTokenNoOp";
