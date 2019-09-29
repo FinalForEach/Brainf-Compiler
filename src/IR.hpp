@@ -36,6 +36,10 @@ class IRToken
 	{
 		return irTokenID;
 	}
+	virtual int getScope() const
+	{
+		return 0;
+	}
 };
 class IRTokenComment : public IRToken
 {
@@ -157,6 +161,10 @@ class IRTokenLoopOpen : public IRToken
 	{
 		cellsAway+=_cellsAway;
 	}
+	int getScope() const override
+	{
+		return 1;
+	}
 };
 class IRTokenLoopClose : public IRToken
 {
@@ -170,6 +178,10 @@ class IRTokenLoopClose : public IRToken
 	}
 	std::string generateCode() const override;
 	int getPreIndentModifier() const override
+	{
+		return -1;
+	}
+	int getScope() const override
 	{
 		return -1;
 	}
@@ -195,6 +207,10 @@ class IRTokenIfOpen : public IRToken
 	{
 		cellsAway+=_cellsAway;
 	}
+	int getScope() const override
+	{
+		return 1;
+	}
 };
 class IRTokenIfClose : public IRToken
 {
@@ -217,11 +233,16 @@ class IRTokenIfClose : public IRToken
 	{
 		cellsAway+=_cellsAway;
 	}
+	int getScope() const override
+	{
+		return -1;
+	}
 };
 
 class IRTokenInput : public IRToken
 {
 	public:
+	int cellsAway;
 	IRTokenInput() : IRToken()
 	{
 	}
@@ -230,6 +251,10 @@ class IRTokenInput : public IRToken
 		return "IRTokenInput";
 	}
 	std::string generateCode() const override;
+	void offsetCells(int _cellsAway) override
+	{
+		cellsAway+=_cellsAway;
+	}
 };
 class IRTokenPrintChar : public IRToken
 {

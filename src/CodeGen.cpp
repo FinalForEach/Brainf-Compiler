@@ -144,13 +144,13 @@ std::string IRTokenMultiShift::generateCode() const
 		code+="dataIndex+=";
 		code+=std::to_string(numShifts);
 		code+=";";
-		code+="if(dataIndex>=tapeSize)dataIndex%=tapeSize;";
+		//code+="if(dataIndex>=tapeSize)dataIndex%=tapeSize;";
 	}else
 	{
 		code+="dataIndex-=";
 		code+=std::to_string(-numShifts);
 		code+=";";
-		code+="if(dataIndex<0)dataIndex=tapeSize+dataIndex;";
+		//code+="if(dataIndex<0)dataIndex=tapeSize+dataIndex;";
 	}
 	return code;
 }
@@ -194,7 +194,7 @@ std::string IRTokenIfClose::generateCode() const
 }
 std::string IRTokenInput::generateCode() const
 {
-	return "std::cin >> data[dataIndex];";	
+	return "std::cin >> "+getData(cellsAway)+";";	
 }
 std::string IRTokenPrintChar::generateCode() const
 {
