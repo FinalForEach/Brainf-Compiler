@@ -4,15 +4,16 @@ void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec)
 {
 	for(unsigned int ti=0;ti<pIRTokensVec.size();ti++)
 	{
-		IRToken *pirToken = pIRTokensVec[ti];
-		if(pirToken->getName()=="IRTokenLoopOpen")
+		IRTokenLoopOpen *pirTokenLoopOpen = dynamic_cast<IRTokenLoopOpen*>(pIRTokensVec[ti]);
+		if(pirTokenLoopOpen!=nullptr)
 		{
 			unsigned int w=ti+1;
 			std::map<int,int> madds;
-			pirToken = pIRTokensVec[w];
+			IRToken *pirToken = pIRTokensVec[w];
 			bool isMultPattern=false;
 			bool foundDec=false;
 			bool foundDests=false;
+			bool ifsRequired=true;
 			while(w<pIRTokensVec.size())//Check if matches multiply pattern
 			{
 				pirToken = pIRTokensVec[w];
@@ -29,13 +30,13 @@ void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec)
 				IRTokenMultiAdd *madd = dynamic_cast<IRTokenMultiAdd*>(pirToken);
 				if(madd!=nullptr)
 				{
-					if(madd->cellsAway==0)
-					{
+					if(madd->cellsAway==pirTokenLoopOpen->cellsAway)
+					{//If the condition decrements.
 						if(madd->intVal==-1)
 						{
 							foundDec=true;
 						}else
-						{							
+						{
 							isMultPattern=false;
 							break;
 						}
@@ -48,7 +49,13 @@ void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec)
 			}
 			if(isMultPattern)//Multiplication detected.
 			{
-				pIRTokensVec[ti]=new IRTokenIfOpen();
+				if(ifsRequired)
+				{
+					pIRTokensVec[ti]=new IRTokenIfOpen();
+				}else
+				{
+					pIRTokensVec[ti]=new IRTokenNoOp(pIRTokensVec[ti]);
+				}
 				int noOpR;
 				int lastMultR;
 				bool hasLastMult=false;
@@ -84,11 +91,27 @@ void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec)
 					{
 						pIRTokensVec[noOpR]= new IRTokenClear();
 					}
-					pIRTokensVec[w]=new IRTokenIfClose(false);
+					if(ifsRequired)
+					{
+						IRTokenIfClose *closingIfBracket =new IRTokenIfClose(false);
+						closingIfBracket->offsetCells(pirTokenLoopOpen->cellsAway);
+						pIRTokensVec[w]=closingIfBracket;
+					}else
+					{
+						pIRTokensVec[w]=new IRTokenNoOp(pIRTokensVec[w]);
+					}
 				}else
 				{
 					pIRTokensVec[noOpR]=new IRTokenNoOp(pIRTokensVec[noOpR]);
-					pIRTokensVec[w]=new IRTokenIfClose(true);
+					if(ifsRequired)
+					{
+						IRTokenIfClose *closingIfBracket =new IRTokenIfClose(true);
+						closingIfBracket->offsetCells(pirTokenLoopOpen->cellsAway);
+						pIRTokensVec[w]=closingIfBracket;
+					}else
+					{
+						pIRTokensVec[w]=new IRTokenNoOp(pIRTokensVec[w]);
+					}
 				}
 				
 			}
@@ -116,6 +139,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		if(irClear!=nullptr)
 		{
 			env.knownCells[irClear->cellsAway + curRelIndex]=irClear->setVal;
+			std::cout<<"Learned thing in irClear#"<<irClear->getIRTokenID()<<" for ["<<irClear->cellsAway + curRelIndex<<"="<<irClear->setVal<<"]\n";
 		}
 		IRTokenMultiShift *mshift = dynamic_cast<IRTokenMultiShift*>(irToken);
 		if(mshift!=nullptr)
@@ -160,8 +184,58 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 			}catch(std::out_of_range& oor){}
 			if(!isDeadCode)
 			{
+				std::cout<<"Forgetting things in irLoopOpen#"<<irLoopOpen->getIRTokenID()<<"...\n";
 				//std::cout<<"Forgot everything: loopOpen#"<<irLoopOpen->getIRTokenID()<<"\n";
-				env.knownCells.clear();//Forget everything.
+				
+				//Forget all cells modified in scope
+				int scope=0;
+				for(unsigned int l=ti+1;l<pIRTokensVec.size();l++)
+				{
+					IRToken *irTokenInLoop = pIRTokensVec[l];
+					
+					scope+=irTokenInLoop->getScope();
+					if(scope<0)break;
+					auto *irTokenInLoopMultiAdd = dynamic_cast<IRTokenMultiAdd*>(irTokenInLoop);
+					auto *irTokenInLoopMultiShift = dynamic_cast<IRTokenMultiShift*>(irTokenInLoop);
+					auto *irTokenInLoopClear = dynamic_cast<IRTokenClear*>(irTokenInLoop);
+					auto *irTokenInLoopInput = dynamic_cast<IRTokenInput*>(irTokenInLoop);
+					auto *irTokenInLoopMultiply = dynamic_cast<IRTokenMultiply*>(irTokenInLoop);
+					if(irTokenInLoopMultiShift!=nullptr)
+					{
+						env.knownCells.clear();//Forget everything.
+						
+						std::cout<<"\tForgot everything in irTokenInLoopMultiShift#"<<irTokenInLoopMultiShift->getIRTokenID()<<".\n";
+						break;
+					}
+					if(irTokenInLoopMultiAdd!=nullptr)
+					{
+						env.knownCells.erase(curRelIndex+irTokenInLoopMultiAdd->cellsAway);
+						std::cout<<"\tForgot ["<<(curRelIndex+irTokenInLoopMultiAdd->cellsAway)<<"] in irTokenInLoopMultiAdd#"<<irTokenInLoopMultiAdd->getIRTokenID()<<".\n";
+					}
+					if(irTokenInLoopClear!=nullptr)
+					{
+						try
+						{
+							int cellIndex=curRelIndex+irTokenInLoopClear->cellsAway;
+							if(irTokenInLoopClear->setVal!=env.knownCells.at(cellIndex))
+							{
+								env.knownCells.erase(cellIndex);
+								std::cout<<"\tForgot ["<<(cellIndex)<<"] in irTokenInLoopClear#"<<irTokenInLoopClear->getIRTokenID()<<".\n";	
+							}
+						}catch(std::out_of_range& oor){}					
+					}
+					if(irTokenInLoopInput!=nullptr)
+					{
+						env.knownCells.erase(curRelIndex+irTokenInLoopInput->cellsAway);
+						std::cout<<"\tForgot ["<<(curRelIndex+irTokenInLoopInput->cellsAway)<<"] in irTokenInLoopInput#"<<irTokenInLoopInput->getIRTokenID()<<".\n";
+					}
+					if(irTokenInLoopMultiply!=nullptr)
+					{
+						env.knownCells.erase(curRelIndex+irTokenInLoopMultiply->cellsAway);
+						std::cout<<"\tForgot ["<<(curRelIndex+irTokenInLoopMultiply->cellsAway)<<"] in irTokenInLoopMultiply#"<<irTokenInLoopMultiply->getIRTokenID()<<".\n";
+					}
+					
+				}
 				curRelIndex=0;//Make known cells relative to current position.
 			}
 		}
@@ -367,6 +441,56 @@ void optimizeIRTokensDiffuseShifts(std::vector<IRToken*>& pIRTokensVec){
 		}
 	}
 }
+void optimizeIRTokensReduceMultiplyIfs(std::vector<IRToken*>& pIRTokensVec)
+{
+	//if an IF scope only contains multiplies using the condition
+	//and a clear for the condition to zero, then the if is not required
+	for(unsigned int ti=0;ti<pIRTokensVec.size();ti++)
+	{
+		IRToken *irToken = pIRTokensVec[ti];
+		IRTokenIfOpen *ifToken = dynamic_cast<IRTokenIfOpen*>(irToken);
+		if(ifToken!=nullptr)
+		{
+			unsigned int s=ti+1;
+			int scope=0;
+			bool reqIfs=false;
+			for(;s<pIRTokensVec.size();s++)
+			{
+				IRToken *irTokenS = pIRTokensVec[s];
+				scope+=irTokenS->getScope();
+				auto *irTokenClear = dynamic_cast<IRTokenClear*>(irTokenS);
+				auto *irTokenMult = dynamic_cast<IRTokenMultiply*>(irTokenS);
+				auto *irTokenIfClose = dynamic_cast<IRTokenIfClose*>(irTokenS);
+				
+				if(irTokenIfClose!=nullptr){
+					break;
+				}
+				if(scope!=0){
+					reqIfs=true;break;
+				}
+				if(irTokenClear!=nullptr)
+				{
+					if(irTokenClear->cellsAway!=ifToken->cellsAway && irTokenClear->setVal==0){
+						reqIfs=true;break;
+					}
+				}else{
+					if(irTokenMult!=nullptr){
+						if(irTokenMult->factorACellsAway!=ifToken->cellsAway){
+							reqIfs=true;break;
+						}
+					}else{
+						reqIfs=true;break;//Other irToken, may require ifs
+					}
+				}
+			}
+			if(!reqIfs)
+			{
+				pIRTokensVec[ti]=new IRTokenNoOp(pIRTokensVec[ti]);
+				pIRTokensVec[s]=new IRTokenNoOp(pIRTokensVec[s]);
+			}
+		}
+	}
+}
 void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec)
 {
 	//Traverse backwards, to maintain iteration
@@ -376,7 +500,6 @@ void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec)
 		if(dynamic_cast<IRTokenNoOp*>(irToken)!=nullptr)
 		{
 			pIRTokensVec.erase(pIRTokensVec.begin()+ti);
-			delete irToken;
 		}
 	}
 }
@@ -386,10 +509,8 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	optimizeIRTokensCancelShifts(pIRTokensVec);
 	optimizeIRTokensDiffuseShifts(pIRTokensVec);
 	
-	
-	
+	optimizeIRTokensReduceMultiplyIfs(pIRTokensVec);
 	optimizeIRTokensKnownVals(pIRTokensVec);
 	ridOfNoOps(pIRTokensVec);
-	
 	
 }

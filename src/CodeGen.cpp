@@ -81,9 +81,9 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 	code+="{\n";
 	curIndentLevel++;
 	addLineOfCode(code,"//Setup data cells",curIndentLevel);
-	addLineOfCode(code,"const unsigned int tapeSize = 30000;",curIndentLevel);
+	addLineOfCode(code,"const unsigned int tapeSize = 60000;",curIndentLevel);
 	addLineOfCode(code,"int data[tapeSize] = {};",curIndentLevel);
-	addLineOfCode(code,"register unsigned int dataIndex = 0;",curIndentLevel);
+	addLineOfCode(code,"register unsigned int dataIndex = 30000;",curIndentLevel);
 	addLineOfCode(code,"//Start program",curIndentLevel);
 	for(unsigned int i=0;i<pIRTokensVec.size();i++)
 	{
