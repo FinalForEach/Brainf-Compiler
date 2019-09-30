@@ -346,5 +346,13 @@ class IRTokenMultiply : public IRToken
 
 void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& pIRTokensVec);
 void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokensCancelShifts(std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokensDiffuseShifts(std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokensReduceMultiplyIfs(std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokensComplexLoops(std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokensCondenseSets(std::vector<IRToken*>& pIRTokensVec);
+void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec);
 void printIRTokens( std::vector<IRToken*>& pIRTokensVec);
 
