@@ -207,6 +207,9 @@ class IRTokenIfOpen : public IRToken
 	IRTokenIfOpen() : IRToken(), cellsAway(0)
 	{
 	}
+	IRTokenIfOpen(int c) : IRToken(), cellsAway(c)
+	{
+	}
 	std::string getName() const override
 	{
 		return "IRTokenIfOpen";
@@ -231,6 +234,9 @@ class IRTokenIfClose : public IRToken
 	bool doesClear;
 	int cellsAway;
 	IRTokenIfClose(bool _doesClear) : IRToken(), doesClear(_doesClear), cellsAway(0)
+	{
+	}
+	IRTokenIfClose(bool _doesClear, int c) : IRToken(), doesClear(_doesClear), cellsAway(c)
 	{
 	}
 	std::string getName() const override
