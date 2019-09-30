@@ -510,10 +510,11 @@ void optimizeIRTokensComplexLoops(std::vector<IRToken*>& pIRTokensVec)
 			unsigned int s=ti+1;
 			int scope=0;
 			bool isReduceable=false;
+			int condSetToZero=false;
 			std::set<int> cellsToBeCleared;
 			std::set<int> cellsNeedingClearing;
 			std::vector<IRToken*> irs;
-			std::vector<IRTokenMultiAdd*> clears;//Condition must be set AFTER the rest.
+			std::vector<IRToken*> clears;//Condition must be set AFTER the rest.
 			for(;s<pIRTokensVec.size();s++)
 			{
 				IRToken *irTokenS = pIRTokensVec[s];
@@ -542,7 +543,11 @@ void optimizeIRTokensComplexLoops(std::vector<IRToken*>& pIRTokensVec)
 					if(irTokenClear->setVal==0)
 					{
 						cellsToBeCleared.erase(irTokenClear->cellsAway);
-						std::cout<<"\tCleared cell:"<<irTokenClear->cellsAway<<"\n";	
+						std::cout<<"\tCleared cell:"<<irTokenClear->cellsAway<<"\n";
+						if(irTokenClear->cellsAway==irLoop->cellsAway)
+						{
+							condSetToZero=true;
+						}
 					}
 				}
 				if(irTokenMult!=nullptr)
@@ -597,9 +602,15 @@ void optimizeIRTokensComplexLoops(std::vector<IRToken*>& pIRTokensVec)
 					auto *irTokenAdd = dynamic_cast<IRTokenMultiAdd*>(ir);
 					if(irTokenAdd!=nullptr)
 					{
-						auto redMult = new IRTokenMultiply(irTokenAdd->cellsAway,irTokenAdd->intVal);
-						redMult->factorACellsAway=irLoop->cellsAway;
-						pIRTokensVec[x++]=redMult;
+						if(condSetToZero)
+						{
+							pIRTokensVec[x++]=irTokenAdd;
+						}else
+						{
+							auto redMult = new IRTokenMultiply(irTokenAdd->cellsAway,irTokenAdd->intVal);
+							redMult->factorACellsAway=irLoop->cellsAway;
+							pIRTokensVec[x++]=redMult;
+						}
 					}else
 					{
 						pIRTokensVec[x++]=ir;	
@@ -607,7 +618,17 @@ void optimizeIRTokensComplexLoops(std::vector<IRToken*>& pIRTokensVec)
 				}
 				for(auto *clr : clears)
 				{
-					pIRTokensVec[x++]=new IRTokenClear(0,clr->cellsAway);
+					auto *irTokenClear = dynamic_cast<IRTokenClear*>(clr);
+					auto *irTokenAdd = dynamic_cast<IRTokenMultiAdd*>(clr);
+					if(irTokenAdd!=nullptr)
+					{
+						pIRTokensVec[x++]=new IRTokenClear(0,irTokenAdd->cellsAway);	
+						continue;
+					}
+					if(irTokenClear!=nullptr)
+					{
+						pIRTokensVec[x++]=irTokenClear;
+					}
 				}
 				pIRTokensVec[ti]= new IRTokenIfOpen(irLoop->cellsAway);
 				pIRTokensVec[s]= new IRTokenIfClose(false,irLoop->cellsAway);
