@@ -671,6 +671,94 @@ void optimizeIRTokensComplexLoops(std::vector<IRToken*>& pIRTokensVec)
 		}
 	}
 }
+
+void optimizeIRTokensCondenseSets(std::vector<IRToken*>& pIRTokensVec)
+{
+	for(unsigned int ti=0;ti<pIRTokensVec.size();ti++)
+	{
+		IRToken *pIRToken = pIRTokensVec[ti];
+		IRTokenMultiAdd *madd = dynamic_cast<IRTokenMultiAdd*>(pIRToken);
+		IRTokenClear *clear = dynamic_cast<IRTokenClear*>(pIRToken);
+		if(madd!=nullptr || clear!=nullptr)
+		{
+			int cell =0;
+			if(madd!=nullptr)
+			{
+				cell=madd->cellsAway;
+			}
+			if(clear!=nullptr)
+			{
+				cell=clear->cellsAway;
+			}
+			int scope=0;
+			for(unsigned int s=ti+1;s<pIRTokensVec.size();s++)
+			{
+				IRToken *pIRTokenS = pIRTokensVec[s];
+				scope+=pIRTokenS->getScope();
+				if(scope!=0)break;
+				
+				IRTokenMultiAdd *maddS = dynamic_cast<IRTokenMultiAdd*>(pIRTokenS);
+				auto *printChar = dynamic_cast<IRTokenPrintChar*>(pIRTokenS);
+				auto *input = dynamic_cast<IRTokenInput*>(pIRTokenS);
+				auto *shift = dynamic_cast<IRTokenMultiShift*>(pIRTokenS);
+				auto *mult = dynamic_cast<IRTokenMultiply*>(pIRTokenS);
+				if(shift!=nullptr){break;}
+				if(mult!=nullptr)
+				{
+					if(mult->factorACellsAway==cell)break;
+				}
+				if(printChar!=nullptr)
+				{
+					if(!printChar->hasKnownCharValue())
+					{
+						if(madd!=nullptr&&printChar->cellsAway==madd->cellsAway){break;}
+						if(clear!=nullptr&&printChar->cellsAway==clear->cellsAway){break;}
+					}
+				}
+				if(input!=nullptr)
+				{
+					if(input->cellsAway==cell)
+					{
+						pIRTokensVec[ti]= new IRTokenNoOp(pIRTokensVec[ti]);
+						break;
+					}
+				}
+				if(maddS!=nullptr)
+				{
+					if(madd!=nullptr)
+					{
+						if(maddS->cellsAway==madd->cellsAway)
+						{
+							maddS->intVal+=madd->intVal;
+							pIRTokensVec[ti]= new IRTokenNoOp(pIRTokensVec[ti]);
+							break;
+						}
+					}
+					if(clear!=nullptr)
+					{
+						if(maddS->cellsAway==clear->cellsAway)
+						{
+							//maddS->intVal+=clear->setVal;
+							clear->setVal+=maddS->intVal;
+							pIRTokensVec[ti]= new IRTokenNoOp(pIRTokensVec[ti]);
+							pIRTokensVec[s]=clear;
+							break;
+						}
+					}
+				}
+				IRTokenClear *clearS = dynamic_cast<IRTokenClear*>(pIRTokenS);
+				if(clearS!=nullptr)
+				{
+					if(clearS->cellsAway==cell)
+					{
+						pIRTokensVec[ti]= new IRTokenNoOp(pIRTokensVec[ti]);
+						break;
+					}
+				}
+			}	
+		}
+	}
+}
 void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec)
 {
 	//Traverse backwards, to maintain iteration
@@ -691,9 +779,11 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	
 	optimizeIRTokensReduceMultiplyIfs(pIRTokensVec);
 	optimizeIRTokensComplexLoops(pIRTokensVec);
-	
-	
+
 	optimizeIRTokensKnownVals(pIRTokensVec);
+	
+	optimizeIRTokensCondenseSets(pIRTokensVec);
 	ridOfNoOps(pIRTokensVec);
+	
 	
 }
