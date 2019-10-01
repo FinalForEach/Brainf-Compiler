@@ -1,6 +1,7 @@
 #include "CodeGen.hpp"
 #include <string>
 #include <map>
+#include <cstdlib>
 unsigned int numConstsCreated=0;
 std::map<int,int> consts;
 std::map<int,int> usedConsts;
@@ -276,8 +277,20 @@ std::string IRTokenPrintChar::generateCode() const
 
 std::string IRTokenMultiply::generateCode() const
 {
-	std::string code =getData(cellsAway,false,true)
-		+"+="+getData(factorACellsAway,true,false)+" * "+std::to_string(factor)+";";
+	std::string code =getData(cellsAway,false,true);
+		if(factor>=0)
+		{
+			code+="+=";
+		}else
+		{
+			code+="-=";
+		}
+		code+=getData(factorACellsAway,true,false);
+		if(abs(factor)!=1)
+		{
+			code+=" * "+std::to_string(abs(factor));
+		}
+		code+=";";
 	return code;
 }
 
