@@ -5,6 +5,7 @@
 unsigned int numConstsCreated=0;
 std::map<int,int> consts;
 std::map<int,int> usedConsts;
+int curIndexOffset=0;
 void findAndReplace(std::string& source, std::string& pattern, std::string& replacement)
 {
 	size_t pos = 0;
@@ -21,24 +22,20 @@ std::string getData(int cellsAway, bool readFrom, bool writeTo)
 		try
 		{
 			int constId = consts.at(cellsAway);
-			str = "temp_";
-			str+=std::to_string(constId);
-			str+="_";
+			str = "temp_"+std::to_string(constId)+"_";
 			usedConsts[constId]++;
 			return str;
 		}catch(std::out_of_range& oor){}
 	}
 	if(!readFrom&&writeTo)
-	{
+	{	
 		int constId = consts[cellsAway]=numConstsCreated++;
-		str+="const int temp_";
-		str+=std::to_string(constId);
-		str+="_";
-		str+="=";
+		str+="const int temp_"+std::to_string(constId)+"_"+"=";
+		std::cout<<str<<", cellsAway:"<<cellsAway<<"\n";
 	}
 	if(cellsAway==0)
 	{
-		str= "data[dataIndex]";
+		str+= "data[dataIndex]";
 	}else
 	{
 		if(cellsAway>0)
@@ -122,6 +119,7 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 	addLineOfCode(code,"//Start program",curIndentLevel);
 	int lastScope=0;
 	int curScope=0;
+	int lastNumConstsCreated=numConstsCreated;
 	for(unsigned int i=0;i<pIRTokensVec.size();i++)
 	{
 		IRToken *irToken= pIRTokensVec[i];
@@ -129,22 +127,29 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 		curScope+=irToken->getScope();
 		curIndentLevel+=irToken->getPreIndentModifier();
 		
+		if(curScope!=lastScope)
+		{
+			curIndexOffset=0;
+			consts.clear();
+		}
 		bool addTokenComment=true;
-		
-		addLineOfCode(code,irToken->generateCode(),curIndentLevel,!addTokenComment);
+		lastNumConstsCreated=numConstsCreated;
+		auto *irShift = dynamic_cast<IRTokenMultiShift*>(irToken);
+		if(irShift!=nullptr)
+		{
+			//curIndexOffset+=irShift->numShifts;
+		}
+		std::string lineOfCode = irToken->generateCode();
+				
+		addLineOfCode(code,lineOfCode,curIndentLevel,!addTokenComment);
 		if(addTokenComment)
 		{
 			addLineOfCode(code,"// IRToken: ",0,false);
 			addLineOfCode(code,irToken->getName(),0,false);
 			addLineOfCode(code,"#",0,false);
 			addLineOfCode(code,std::to_string(irToken->getIRTokenID()),0,true);
-			
 		}
 		curIndentLevel+=irToken->getPostIndentModifier();
-		if(curScope!=lastScope)
-		{
-			consts.clear();
-		}
 	}
 	for(unsigned int c=0;c<numConstsCreated;c++)//Forget unused constants
 	{

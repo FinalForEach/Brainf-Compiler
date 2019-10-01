@@ -182,7 +182,8 @@ class IRTokenLoopOpen : public IRToken
 class IRTokenLoopClose : public IRToken
 {
 	public:
-	IRTokenLoopClose() : IRToken()
+	IRTokenLoopOpen *loopOpen;
+	IRTokenLoopClose(IRTokenLoopOpen *open) : IRToken(), loopOpen(open)
 	{
 	}
 	std::string getName() const override

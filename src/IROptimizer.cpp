@@ -1,5 +1,6 @@
 #include "IR.hpp"
 #include "Environment.hpp"
+#include <set>
 
 void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 {
@@ -385,6 +386,23 @@ void optimizeIRTokensCondenseSets(std::vector<IRToken*>& pIRTokensVec)
 				}
 			}	
 		}
+		/*if(ti+2<pIRTokensVec.size())
+		{
+			auto *ifso = dynamic_cast<IRTokenIfOpen*>(pIRTokensVec[ti]);
+			auto *clr = dynamic_cast<IRTokenClear*>(pIRTokensVec[ti+1]);
+			auto *ifsc = dynamic_cast<IRTokenIfClose*>(pIRTokensVec[ti+2]);
+			if(ifso!=nullptr && clr!=nullptr && ifsc!=nullptr)
+			{
+				//If the cell is going to be cleared, then if statements are redundant.
+				if(clr->cellsAway==ifso->cellsAway && clr->setVal==0)
+				{
+					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
+					pIRTokensVec[ti+2] = new IRTokenNoOp(pIRTokensVec[ti+2]);
+				}
+			}
+		}*/
+		
+		
 	}
 }
 void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec)
@@ -399,9 +417,64 @@ void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec)
 		}
 	}
 }
+void optimizeIRTokensSurroundShifts(std::vector<IRToken*>& pIRTokensVec)
+{
+	
+	//Take every while loop, and surround with shifts according to the condition
+	//so that the index addition only happens twice, not for every conditional check.
+	std::map<int,int> shiftsReq;
+	std::set<int> opens;
+	std::set<int> closes;
+	std::vector<int> opensAndCloses;
+	//Traverse backwards to maintain order when applying shifts
+	for(int ti=pIRTokensVec.size()-1;ti>=0;ti--)
+	{
+		IRToken *irToken = pIRTokensVec[ti];
+		IRTokenLoopClose *irTokenLoopClose = dynamic_cast<IRTokenLoopClose*>(irToken);
+		if(irTokenLoopClose!=nullptr)
+		{
+			int cond = irTokenLoopClose->loopOpen->cellsAway;
+			int scope=0;
+			int l=ti-1;
+			for(;l>=0;l--)
+			{
+				IRToken *irTokenL = pIRTokensVec[l];
+				scope+=irTokenL->getScope();
+				irTokenL->offsetCells(-cond);
+				if(scope>=1)break;
+			}
+			shiftsReq[ti]=cond;
+			shiftsReq[l]=cond;
+			closes.insert(ti);
+			opens.insert(l);
+			opensAndCloses.push_back(ti);
+		}
+		
+		IRTokenLoopOpen *irTokenLoopOpen = dynamic_cast<IRTokenLoopOpen*>(irToken);
+		if(irTokenLoopOpen!=nullptr)
+		{
+			opensAndCloses.push_back(ti);
+		}
+	}
+	for(unsigned int i=0;i<opensAndCloses.size();i++)
+	{
+		int irIndex = opensAndCloses[i];
+		if(opens.find(irIndex)!=opens.end() &&shiftsReq[irIndex]!=0)
+		{
+			pIRTokensVec.insert(pIRTokensVec.begin()+irIndex,new IRTokenMultiShift(shiftsReq[irIndex]));
+			continue;
+		}
+		if(closes.find(irIndex)!=closes.end() &&shiftsReq[irIndex]!=0)
+		{
+			pIRTokensVec.insert(pIRTokensVec.begin()+irIndex+1,new IRTokenMultiShift(-shiftsReq[irIndex]));
+			continue;
+		}
+	}
+}
+
 void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 {
-	int numSweeps=1;
+	int numSweeps=2;
 	for(int i=0;i<numSweeps;i++)
 	{
 		optimizeIRTokensMultiplyPass(pIRTokensVec);//
@@ -417,8 +490,6 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 		ridOfNoOps(pIRTokensVec);
 		
 		
-		
-		optimizeIRTokensMultiplyPass(pIRTokensVec);//
-		
 	}
+	optimizeIRTokensSurroundShifts(pIRTokensVec);
 }

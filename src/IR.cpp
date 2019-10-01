@@ -37,6 +37,7 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 	
 	std::string commentStr = "";
 	std::string whitespaceCommentStr = "";
+	std::vector<IRTokenLoopOpen*> opens;
 	for(unsigned int ti=0;ti<pTokensVec.size();ti++)
 	{
 		Token *pToken = pTokensVec[ti];
@@ -126,11 +127,14 @@ void convertTokensToIR(std::vector<Token*>& pTokensVec, std::vector<IRToken*>& p
 		//Loops
 		if(pToken->getName() == "OPEN_BRACKET")
 		{
-			pIRTokensVec.push_back(new IRTokenLoopOpen());
+			auto *lo = new IRTokenLoopOpen();
+			pIRTokensVec.push_back(lo);
+			opens.push_back(lo);
 		}
 		if(pToken->getName() == "CLOSE_BRACKET")
 		{
-			pIRTokensVec.push_back(new IRTokenLoopClose());
+			pIRTokensVec.push_back(new IRTokenLoopClose(opens.back()));
+			opens.pop_back();
 		}
 		
 		if(pToken->getName() == "COMMA")//Input
