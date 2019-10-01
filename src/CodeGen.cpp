@@ -1,24 +1,58 @@
 #include "CodeGen.hpp"
 #include <string>
-std::string getData(int cellsAway)
+#include <map>
+unsigned int numConstsCreated=0;
+std::map<int,int> consts;
+std::map<int,int> usedConsts;
+void findAndReplace(std::string& source, std::string& pattern, std::string& replacement)
 {
+	size_t pos = 0;
+	while ((pos = source.find(pattern, pos)) != std::string::npos) {
+		source.replace(pos,pattern.length(),replacement);
+		pos+=replacement.length();
+	}
+}
+std::string getData(int cellsAway, bool readFrom, bool writeTo)
+{
+	std::string str = "";
+	if(readFrom && !writeTo)
+	{
+		try
+		{
+			int constId = consts.at(cellsAway);
+			str = "temp_";
+			str+=std::to_string(constId);
+			str+="_";
+			usedConsts[constId]++;
+			return str;
+		}catch(std::out_of_range& oor){}
+	}
+	if(!readFrom&&writeTo)
+	{
+		int constId = consts[cellsAway]=numConstsCreated++;
+		str+="const int temp_";
+		str+=std::to_string(constId);
+		str+="_";
+		str+="=";
+	}
 	if(cellsAway==0)
 	{
-		return "data[dataIndex]";
-	}
-	if(cellsAway>0)
-	{
-		std::string str =  "data[dataIndex+";
-		str+=std::to_string(cellsAway);
-		str+="]";
-		return str;
+		str= "data[dataIndex]";
 	}else
 	{
-		std::string str =  "data[dataIndex-";
-		str+=std::to_string(-cellsAway);
-		str+="]";
-		return str;		
+		if(cellsAway>0)
+		{
+			str +=  "data[dataIndex+";
+			str+=std::to_string(cellsAway);
+			str+="]";
+		}else
+		{
+			str +=  "data[dataIndex-";
+			str+=std::to_string(-cellsAway);
+			str+="]";
+		}
 	}
+	return str;
 }
 
 std::string& addLineOfCode(std::string& fileStr, const std::string& code, int indentLevel, bool addNewline=true)
@@ -85,9 +119,13 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 	addLineOfCode(code,"int data[tapeSize] = {};",curIndentLevel);
 	addLineOfCode(code,"register unsigned int dataIndex = 30000;",curIndentLevel);
 	addLineOfCode(code,"//Start program",curIndentLevel);
+	int lastScope=0;
+	int curScope=0;
 	for(unsigned int i=0;i<pIRTokensVec.size();i++)
 	{
 		IRToken *irToken= pIRTokensVec[i];
+		lastScope=curScope;
+		curScope+=irToken->getScope();
 		curIndentLevel+=irToken->getPreIndentModifier();
 		
 		bool addTokenComment=true;
@@ -102,6 +140,19 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 			
 		}
 		curIndentLevel+=irToken->getPostIndentModifier();
+		if(curScope!=lastScope)
+		{
+			consts.clear();
+		}
+	}
+	for(unsigned int c=0;c<numConstsCreated;c++)//Forget unused constants
+	{
+		if(usedConsts[c]<1)
+		{
+			std::string pat = "const int temp_"+std::to_string(c)+"_=";
+			std::string replace = "";
+			findAndReplace(code,pat,replace);
+		}
 	}
 	
 	code+="}\n";
@@ -113,7 +164,7 @@ std::string IRTokenMultiAdd::generateCode() const
 {
 	if(intVal!=0)
 	{
-		std::string code = getData(cellsAway);
+		std::string code = getData(cellsAway,false,true);
 	
 		if(intVal>0)
 		{
@@ -127,7 +178,7 @@ std::string IRTokenMultiAdd::generateCode() const
 	}else
 	{
 		std::string code = "//Would have added "+std::to_string(intVal)
-			+" to "+getData(cellsAway);
+			+" to "+getData(cellsAway,false,false);
 		return code;
 	}
 	
@@ -146,7 +197,7 @@ std::string IRTokenMultiShift::generateCode() const
 }
 std::string IRTokenClear::generateCode() const
 {
-	std::string code = getData(cellsAway);
+	std::string code = getData(cellsAway,false,true);
 	code+="=";
 	code+=std::to_string(setVal);
 	code+=";";
@@ -155,7 +206,7 @@ std::string IRTokenClear::generateCode() const
 std::string IRTokenLoopOpen::generateCode() const
 {
 	std::string code = "while(";
-	code+=getData(cellsAway);
+	code+=getData(cellsAway,true,true);
 	code+="!=0){";
 	return code;	
 }
@@ -166,7 +217,7 @@ std::string IRTokenLoopClose::generateCode() const
 std::string IRTokenIfOpen::generateCode() const
 {
 	std::string code = "if(";
-	code+=getData(cellsAway);
+	code+=getData(cellsAway,true,false);
 	code+="!=0){";
 	return code;
 }
@@ -174,7 +225,7 @@ std::string IRTokenIfClose::generateCode() const
 {
 	if(doesClear)
 	{
-		std::string code = getData(cellsAway);
+		std::string code = getData(cellsAway,false,true);
 		code+="}";
 		return code;
 	}else
@@ -184,7 +235,7 @@ std::string IRTokenIfClose::generateCode() const
 }
 std::string IRTokenInput::generateCode() const
 {
-	return "std::cin >> "+getData(cellsAway)+";";	
+	return "std::cin >> "+getData(cellsAway,false,true)+";";	
 }
 std::string IRTokenPrintChar::generateCode() const
 {
@@ -218,14 +269,15 @@ std::string IRTokenPrintChar::generateCode() const
 		}
 	}
 	//code+="(char)";
-	code+=getData(cellsAway);
+	code+=getData(cellsAway,true,false);
 	code+=");";
 	return code;	
 }
 
 std::string IRTokenMultiply::generateCode() const
 {
-	std::string code =getData(cellsAway)+"+="+getData(factorACellsAway)+" * "+std::to_string(factor)+";";
+	std::string code =getData(cellsAway,false,true)
+		+"+="+getData(factorACellsAway,true,false)+" * "+std::to_string(factor)+";";
 	return code;
 }
 

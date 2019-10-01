@@ -125,8 +125,6 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 				const int result = knownFactor * irMult->factor;
 				pIRTokensVec[ti] = new IRTokenMultiAdd(result,irMult->cellsAway);
 				ti--;continue;//Replaced token, so track it
-				
-				
 			}catch(std::out_of_range& oor)
 			{
 				//If unknown factors, mark current cell as unknown.
@@ -191,7 +189,6 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		}
 		if(irIfClose!=nullptr)
 		{
-			std::cout<<"Forgetting things in irIfClose#"<<irIfClose->getIRTokenID()<<"...\n";
 			//If this token exists, the entire if statement is known not to be dead code.
 			//So we search up to the matching ifOpen, making sure to forget all set cells.
 			int scope=0;
@@ -213,30 +210,25 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 				}
 				if(irTokenInIfMultiShift!=nullptr){
 					env.knownCells.clear();//Forget everything.
-					std::cout<<"\tForgot everything in irTokenInIfMultiShift#"<<irTokenInIfMultiShift->getIRTokenID()<<".\n";
 					break;
 				}
 				if(irTokenInIfMultiAdd!=nullptr){
 					env.knownCells.erase(curRelIndex+irTokenInIfMultiAdd->cellsAway);
-					std::cout<<"\tForgot ["<<(curRelIndex+irTokenInIfMultiAdd->cellsAway)<<"] in irTokenInIfMultiAdd#"<<irTokenInIfMultiAdd->getIRTokenID()<<".\n";
 					continue;
 				}
 				if(irTokenInIfMultiply!=nullptr){
 					env.knownCells.erase(curRelIndex+irTokenInIfMultiply->cellsAway);
-					std::cout<<"\tForgot ["<<(curRelIndex+irTokenInIfMultiply->cellsAway)<<"] in irTokenInIfMultiply#"<<irTokenInIfMultiply->getIRTokenID()<<".\n";
 					continue;
 				}
 				if(irTokenInIfClear!=nullptr){
 					try{
 						int cellIndex=curRelIndex+irTokenInIfClear->cellsAway;
 						env.knownCells.erase(cellIndex);
-						std::cout<<"\tForgot ["<<(cellIndex)<<"] in irTokenInIfClear#"<<irTokenInIfClear->getIRTokenID()<<".\n";
 						continue;
 					}catch(std::out_of_range& oor){}					
 				}
 				if(irTokenInIfInput!=nullptr){
 					env.knownCells.erase(curRelIndex+irTokenInIfInput->cellsAway);
-					std::cout<<"\tForgot ["<<(curRelIndex+irTokenInIfInput->cellsAway)<<"] in irTokenInIfInput#"<<irTokenInIfInput->getIRTokenID()<<".\n";
 					continue;
 				}
 			}
@@ -412,16 +404,21 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	int numSweeps=1;
 	for(int i=0;i<numSweeps;i++)
 	{
-		optimizeIRTokensMultiplyPass(pIRTokensVec);
+		optimizeIRTokensMultiplyPass(pIRTokensVec);//
 		optimizeIRTokensCancelShifts(pIRTokensVec);
 		optimizeIRTokensDiffuseShifts(pIRTokensVec);
 		
 		optimizeIRTokensReduceMultiplyIfs(pIRTokensVec);
-		optimizeIRTokensComplexLoops(pIRTokensVec);
+		optimizeIRTokensComplexLoops(pIRTokensVec);//
 
-		optimizeIRTokensKnownVals(pIRTokensVec);
+		optimizeIRTokensKnownVals(pIRTokensVec);//
 		
 		optimizeIRTokensCondenseSets(pIRTokensVec);
 		ridOfNoOps(pIRTokensVec);
+		
+		
+		
+		optimizeIRTokensMultiplyPass(pIRTokensVec);//
+		
 	}
 }
