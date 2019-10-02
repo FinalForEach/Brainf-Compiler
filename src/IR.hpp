@@ -45,6 +45,10 @@ class IRToken
 	{
 		return 0;
 	}
+	virtual bool isReadingFromCell(int cell) const
+	{
+		return false;
+	}
 };
 class IRTokenComment : public IRToken
 {
@@ -331,8 +335,9 @@ class IRTokenMultiply : public IRToken
 	int cellsAway;
 	int factorACellsAway;
 	int factor;
+	int add;
 	IRTokenMultiply(int _cellsAway, int _factor) 
-	: IRToken(), cellsAway(_cellsAway),factorACellsAway(0), factor(_factor){}
+	: IRToken(), cellsAway(_cellsAway),factorACellsAway(0), factor(_factor), add(0){}
 	std::string getName() const override
 	{
 		return "IRTokenMultiply";
@@ -342,6 +347,10 @@ class IRTokenMultiply : public IRToken
 	{
 		cellsAway+=_cellsAway;
 		factorACellsAway+=_cellsAway;
+	}
+	bool isReadingFromCell(int cell) const override
+	{
+		return cell==factorACellsAway;
 	}
 };
 
@@ -354,6 +363,7 @@ void optimizeIRTokensReduceMultiplyIfs(std::vector<IRToken*>& pIRTokensVec);
 void optimizeIRTokensComplexLoops(std::vector<IRToken*>& pIRTokensVec);
 void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec);
 void optimizeIRTokensCondenseSets(std::vector<IRToken*>& pIRTokensVec);
+void optimizeIRTokensCombineAddsMults(std::vector<IRToken*>& pIRTokensVec);
 void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec);
 void printIRTokens( std::vector<IRToken*>& pIRTokensVec);
 

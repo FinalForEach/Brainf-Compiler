@@ -283,19 +283,23 @@ std::string IRTokenPrintChar::generateCode() const
 std::string IRTokenMultiply::generateCode() const
 {
 	std::string code =getData(cellsAway,false,true);
-		if(factor>=0)
-		{
-			code+="+=";
-		}else
-		{
-			code+="-=";
-		}
-		code+=getData(factorACellsAway,true,false);
-		if(abs(factor)!=1)
-		{
-			code+=" * "+std::to_string(abs(factor));
-		}
-		code+=";";
+	int a = add;
+	if(factor>=0)
+	{
+		code+="+=";
+	}else
+	{
+		code+="-=";
+		a*=-1;
+	}
+	code+=getData(factorACellsAway,true,false);
+	if(abs(factor)!=1)
+	{
+		code+=" * "+std::to_string(abs(factor));
+	}
+	if(a!=0){code+="+"+std::to_string(a);}
+	code+=";";
+	std::cout<<code<<"\n";
 	return code;
 }
 

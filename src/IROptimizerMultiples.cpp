@@ -63,8 +63,6 @@ void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec)
 			{
 				pIRTokensVec[ti]=new IRTokenIfOpen(pirTokenLoopOpen->cellsAway);
 				
-				int noOpR;
-				int lastMultR;
 				unsigned int r =ti;
 				//for(unsigned int r=ti+1;r<pIRTokensVec.size();r++)
 				std::reverse(std::begin(irPatternTokens), std::end(irPatternTokens));
@@ -81,7 +79,6 @@ void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec)
 							auto *newMult=new IRTokenMultiply(madd->cellsAway,madd->intVal);
 							newMult->factorACellsAway=pirTokenLoopOpen->cellsAway;
 							pIRTokensVec[r]=newMult;
-							lastMultR=r;
 							
 							std::cout<<"Replacing "<<madd->getName()<<"#"<<madd->getIRTokenID()<<" with mult#"<<pIRTokensVec[r]->getIRTokenID()<<"\n";
 							continue;
@@ -234,4 +231,36 @@ void optimizeIRTokensComplexLoops(std::vector<IRToken*>& pIRTokensVec)
 			}
 		}
 	}
+}
+
+void optimizeIRTokensCombineAddsMults(std::vector<IRToken*>& pIRTokensVec)
+{
+	
+	for(unsigned int i=0;i<pIRTokensVec.size();i++)
+	{
+		IRTokenMultiAdd *irTokenAdd = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[i]);
+		if(irTokenAdd!=nullptr)
+		{
+			
+			int scope=0;
+			for(unsigned int x=i+1;x<pIRTokensVec.size();x++)
+			{
+				scope+=pIRTokensVec[x]->getScope();
+				if(scope!=0)break;
+				IRTokenMultiply *irTokenMult = dynamic_cast<IRTokenMultiply*>(pIRTokensVec[x]);
+				if(irTokenMult!=nullptr && irTokenMult->cellsAway==irTokenAdd->cellsAway)
+				{
+					irTokenMult->add+=irTokenAdd->intVal;
+					pIRTokensVec[i] = new IRTokenNoOp(pIRTokensVec[i]);
+				}else
+				{
+					if(pIRTokensVec[x]->isReadingFromCell(irTokenAdd->cellsAway))
+					{
+						break;
+					}
+				}
+			}
+		}
+	}
+	
 }

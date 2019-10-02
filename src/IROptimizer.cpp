@@ -461,30 +461,42 @@ void optimizeIRTokensSurroundShifts(std::vector<IRToken*>& pIRTokensVec)
 		int irIndex = opensAndCloses[i];
 		if(opens.find(irIndex)!=opens.end() &&shiftsReq[irIndex]!=0)
 		{
-			pIRTokensVec.insert(pIRTokensVec.begin()+irIndex,new IRTokenMultiShift(shiftsReq[irIndex]));
+			IRTokenMultiShift *existingShift = dynamic_cast<IRTokenMultiShift*>(pIRTokensVec[irIndex]);
+			if(existingShift!=nullptr)
+			{
+				existingShift->numShifts+=shiftsReq[irIndex];
+			}else
+			{
+				pIRTokensVec.insert(pIRTokensVec.begin()+irIndex,new IRTokenMultiShift(shiftsReq[irIndex]));	
+			}
 			continue;
 		}
 		if(closes.find(irIndex)!=closes.end() &&shiftsReq[irIndex]!=0)
 		{
-			pIRTokensVec.insert(pIRTokensVec.begin()+irIndex+1,new IRTokenMultiShift(-shiftsReq[irIndex]));
-			continue;
+			IRTokenMultiShift *existingShift = dynamic_cast<IRTokenMultiShift*>(pIRTokensVec[irIndex+1]);
+			if(existingShift!=nullptr)
+			{
+				existingShift->numShifts-=shiftsReq[irIndex];
+			}else
+			{
+				pIRTokensVec.insert(pIRTokensVec.begin()+irIndex+1,new IRTokenMultiShift(-shiftsReq[irIndex]));
+			}
 		}
 	}
 }
-
 void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 {
 	int numSweeps=2;
 	for(int i=0;i<numSweeps;i++)
 	{
-		optimizeIRTokensMultiplyPass(pIRTokensVec);//
+		optimizeIRTokensMultiplyPass(pIRTokensVec);
 		optimizeIRTokensCancelShifts(pIRTokensVec);
 		optimizeIRTokensDiffuseShifts(pIRTokensVec);
 		
 		optimizeIRTokensReduceMultiplyIfs(pIRTokensVec);
-		optimizeIRTokensComplexLoops(pIRTokensVec);//
+		optimizeIRTokensComplexLoops(pIRTokensVec);
 
-		optimizeIRTokensKnownVals(pIRTokensVec);//
+		optimizeIRTokensKnownVals(pIRTokensVec);
 		
 		optimizeIRTokensCondenseSets(pIRTokensVec);
 		ridOfNoOps(pIRTokensVec);
@@ -492,4 +504,5 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 		
 	}
 	optimizeIRTokensSurroundShifts(pIRTokensVec);
+	optimizeIRTokensCombineAddsMults(pIRTokensVec);
 }
