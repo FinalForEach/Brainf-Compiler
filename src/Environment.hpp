@@ -8,7 +8,7 @@ class Environment
 	std::map<int,int> knownCells;
 	Environment()
 	{
-		for(int i=0;i<30000;i++)
+		for(int i=-30000;i<30000;i++)
 		{
 			knownCells[i]=0;//Initialize
 		}

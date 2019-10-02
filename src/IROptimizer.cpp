@@ -244,7 +244,7 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 			try{
 				if(!irPrintChar->hasKnownCharValue()){
 					int val = env.knownCells.at(curRelIndex+irPrintChar->cellsAway);
-					irPrintChar->knownCharValue=val;	
+					irPrintChar->knownCharValue=val;
 				}
 			}catch(std::out_of_range& oor){}
 		}
@@ -385,24 +385,7 @@ void optimizeIRTokensCondenseSets(std::vector<IRToken*>& pIRTokensVec)
 					}
 				}
 			}	
-		}
-		/*if(ti+2<pIRTokensVec.size())
-		{
-			auto *ifso = dynamic_cast<IRTokenIfOpen*>(pIRTokensVec[ti]);
-			auto *clr = dynamic_cast<IRTokenClear*>(pIRTokensVec[ti+1]);
-			auto *ifsc = dynamic_cast<IRTokenIfClose*>(pIRTokensVec[ti+2]);
-			if(ifso!=nullptr && clr!=nullptr && ifsc!=nullptr)
-			{
-				//If the cell is going to be cleared, then if statements are redundant.
-				if(clr->cellsAway==ifso->cellsAway && clr->setVal==0)
-				{
-					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
-					pIRTokensVec[ti+2] = new IRTokenNoOp(pIRTokensVec[ti+2]);
-				}
-			}
-		}*/
-		
-		
+		}		
 	}
 }
 void ridOfNoOps(std::vector<IRToken*>& pIRTokensVec)
@@ -505,4 +488,6 @@ void optimizeIRTokens(std::vector<IRToken*>& pIRTokensVec)
 	}
 	optimizeIRTokensSurroundShifts(pIRTokensVec);
 	optimizeIRTokensCombineAddsMults(pIRTokensVec);
+	ridOfNoOps(pIRTokensVec);
+	optimizeIRTokensKnownVals(pIRTokensVec);
 }

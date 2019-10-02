@@ -31,7 +31,6 @@ std::string getData(int cellsAway, bool readFrom, bool writeTo)
 	{	
 		int constId = consts[cellsAway]=numConstsCreated++;
 		str+="const int temp_"+std::to_string(constId)+"_"+"=";
-		std::cout<<str<<", cellsAway:"<<cellsAway<<"\n";
 	}
 	if(cellsAway==0)
 	{
@@ -119,7 +118,6 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 	addLineOfCode(code,"//Start program",curIndentLevel);
 	int lastScope=0;
 	int curScope=0;
-	int lastNumConstsCreated=numConstsCreated;
 	for(unsigned int i=0;i<pIRTokensVec.size();i++)
 	{
 		IRToken *irToken= pIRTokensVec[i];
@@ -133,7 +131,6 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 			consts.clear();
 		}
 		bool addTokenComment=true;
-		lastNumConstsCreated=numConstsCreated;
 		auto *irShift = dynamic_cast<IRTokenMultiShift*>(irToken);
 		if(irShift!=nullptr)
 		{
@@ -168,16 +165,22 @@ std::string generateCode(std::vector<IRToken*>& pIRTokensVec, std::string& outpu
 
 std::string IRTokenMultiAdd::generateCode() const
 {
+	
 	if(intVal!=0)
 	{
 		std::string code = getData(cellsAway,false,true);
-	
-		if(intVal>0)
+		if(doSetVal)
 		{
-			code+="+="+std::to_string(intVal);
+			code+="="+std::to_string(intVal);
 		}else
 		{
-			code+="-="+std::to_string(-intVal);
+			if(intVal>0)
+			{
+				code+="+="+std::to_string(intVal);
+			}else
+			{
+				code+="-="+std::to_string(-intVal);
+			}
 		}
 		code+=";";
 		return code;
@@ -245,7 +248,6 @@ std::string IRTokenInput::generateCode() const
 }
 std::string IRTokenPrintChar::generateCode() const
 {
-	//std::string code = "std::cout<<";
 	std::string code = "putchar(";
 	if(hasKnownCharValue())
 	{
@@ -284,14 +286,21 @@ std::string IRTokenMultiply::generateCode() const
 {
 	std::string code =getData(cellsAway,false,true);
 	int a = add;
-	if(factor>=0)
+	if(doSetVal)
 	{
-		code+="+=";
+		code+="=";
 	}else
 	{
-		code+="-=";
-		a*=-1;
+		if(factor>=0)
+		{
+			code+="+=";
+		}else
+		{
+			code+="-=";
+			a*=-1;
+		}	
 	}
+	
 	code+=getData(factorACellsAway,true,false);
 	if(abs(factor)!=1)
 	{
@@ -299,7 +308,6 @@ std::string IRTokenMultiply::generateCode() const
 	}
 	if(a!=0){code+="+"+std::to_string(a);}
 	code+=";";
-	std::cout<<code<<"\n";
 	return code;
 }
 

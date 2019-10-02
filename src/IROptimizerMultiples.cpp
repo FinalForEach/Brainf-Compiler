@@ -80,7 +80,6 @@ void optimizeIRTokensMultiplyPass(std::vector<IRToken*>& pIRTokensVec)
 							newMult->factorACellsAway=pirTokenLoopOpen->cellsAway;
 							pIRTokensVec[r]=newMult;
 							
-							std::cout<<"Replacing "<<madd->getName()<<"#"<<madd->getIRTokenID()<<" with mult#"<<pIRTokensVec[r]->getIRTokenID()<<"\n";
 							continue;
 						}
 					}
@@ -117,7 +116,6 @@ void optimizeIRTokensComplexLoops(std::vector<IRToken*>& pIRTokensVec)
 		IRTokenLoopOpen *irLoop = dynamic_cast<IRTokenLoopOpen*>(irToken);
 		if(irLoop!=nullptr)
 		{
-			std::cout<<"Checking if irLoop#"<<irLoop->getIRTokenID()<<" isReduceable:\n";
 			unsigned int s=ti+1;
 			int scope=0;
 			bool isReduceable=false;
@@ -241,14 +239,13 @@ void optimizeIRTokensCombineAddsMults(std::vector<IRToken*>& pIRTokensVec)
 		IRTokenMultiAdd *irTokenAdd = dynamic_cast<IRTokenMultiAdd*>(pIRTokensVec[i]);
 		if(irTokenAdd!=nullptr)
 		{
-			
 			int scope=0;
 			for(unsigned int x=i+1;x<pIRTokensVec.size();x++)
 			{
 				scope+=pIRTokensVec[x]->getScope();
 				if(scope!=0)break;
 				IRTokenMultiply *irTokenMult = dynamic_cast<IRTokenMultiply*>(pIRTokensVec[x]);
-				if(irTokenMult!=nullptr && irTokenMult->cellsAway==irTokenAdd->cellsAway)
+				if(irTokenMult!=nullptr && irTokenMult->cellsAway==irTokenAdd->cellsAway && irTokenMult->doSetVal==false)
 				{
 					irTokenMult->add+=irTokenAdd->intVal;
 					pIRTokensVec[i] = new IRTokenNoOp(pIRTokensVec[i]);
@@ -259,6 +256,20 @@ void optimizeIRTokensCombineAddsMults(std::vector<IRToken*>& pIRTokensVec)
 						break;
 					}
 				}
+			}
+		}
+		IRTokenClear *irTokenClear = dynamic_cast<IRTokenClear*>(pIRTokensVec[i]);
+		if(irTokenClear!=nullptr && i+1<pIRTokensVec.size())
+		{
+			IRTokenMultiply *irTokenMult = dynamic_cast<IRTokenMultiply*>(pIRTokensVec[i+1]);
+			if(irTokenMult!=nullptr && irTokenMult->cellsAway==irTokenClear->cellsAway && irTokenClear->setVal==0)
+			{
+				std::cout<<"irTokenClear#"<<irTokenClear->getIRTokenID()<<"->setVal="<<irTokenClear->setVal<<",";
+				std::cout<<"irTokenMult#"<<irTokenMult->getIRTokenID()<<"->add="<<irTokenMult->add<<", now:";
+				//irTokenMult->add+=irTokenClear->setVal;
+				irTokenMult->doSetVal=true;
+				std::cout<<"irTokenMult->add="<<irTokenMult->add<<"\n";
+				pIRTokensVec[i] = new IRTokenNoOp(pIRTokensVec[i]);
 			}
 		}
 	}

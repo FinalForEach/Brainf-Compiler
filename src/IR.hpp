@@ -49,6 +49,10 @@ class IRToken
 	{
 		return false;
 	}
+	virtual bool isWritingToCell(int cell) const
+	{
+		return false;
+	}
 };
 class IRTokenComment : public IRToken
 {
@@ -108,10 +112,11 @@ class IRTokenMultiAdd : public IRToken
 	public:
 	int intVal;
 	int cellsAway;
-	IRTokenMultiAdd(int i): IRToken(), intVal(i), cellsAway(0)
+	bool doSetVal;
+	IRTokenMultiAdd(int i): IRToken(), intVal(i), cellsAway(0), doSetVal(false)
 	{
 	}
-	IRTokenMultiAdd(int i, int c): IRToken(), intVal(i), cellsAway(c)
+	IRTokenMultiAdd(int i, int c): IRToken(), intVal(i), cellsAway(c), doSetVal(false)
 	{
 	}
 	std::string getName() const override
@@ -122,6 +127,10 @@ class IRTokenMultiAdd : public IRToken
 	void offsetCells(int _cellsAway) override
 	{
 		cellsAway+=_cellsAway;
+	}
+	bool isWritingToCell(int cell) const override
+	{
+		return cellsAway==cell;
 	}
 };
 class IRTokenMultiShift : public IRToken
@@ -156,6 +165,10 @@ class IRTokenClear : public IRToken
 	void offsetCells(int _cellsAway) override
 	{
 		cellsAway+=_cellsAway;
+	}
+	bool isWritingToCell(int cell) const override
+	{
+		return cellsAway==cell;
 	}
 };
 class IRTokenLoopOpen : public IRToken
@@ -261,6 +274,11 @@ class IRTokenIfClose : public IRToken
 	{
 		return -1;
 	}
+	
+	bool isWritingToCell(int cell) const override
+	{
+		return doesClear&&cellsAway==cell;
+	}
 };
 
 class IRTokenInput : public IRToken
@@ -278,6 +296,10 @@ class IRTokenInput : public IRToken
 	void offsetCells(int _cellsAway) override
 	{
 		cellsAway+=_cellsAway;
+	}
+	bool isWritingToCell(int cell) const override
+	{
+		return cellsAway==cell;
 	}
 };
 class IRTokenPrintChar : public IRToken
@@ -301,7 +323,10 @@ class IRTokenPrintChar : public IRToken
 	{
 		cellsAway+=_cellsAway;
 	}
-	
+	bool isReadingFromCell(int cell) const override
+	{
+		return cell==cellsAway;
+	}
 	
 	bool hasKnownCharValue() const
 	{
@@ -327,7 +352,7 @@ class IRTokenPrintStr : public IRToken
 	std::string getName() const override
 	{
 		return "IRTokenPrintStr";
-	}
+	}	
 };
 class IRTokenMultiply : public IRToken
 {
@@ -336,8 +361,9 @@ class IRTokenMultiply : public IRToken
 	int factorACellsAway;
 	int factor;
 	int add;
+	bool doSetVal;
 	IRTokenMultiply(int _cellsAway, int _factor) 
-	: IRToken(), cellsAway(_cellsAway),factorACellsAway(0), factor(_factor), add(0){}
+	: IRToken(), cellsAway(_cellsAway),factorACellsAway(0), factor(_factor), add(0), doSetVal(false){}
 	std::string getName() const override
 	{
 		return "IRTokenMultiply";
@@ -351,6 +377,11 @@ class IRTokenMultiply : public IRToken
 	bool isReadingFromCell(int cell) const override
 	{
 		return cell==factorACellsAway;
+	}
+	
+	bool isWritingToCell(int cell) const override
+	{
+		return cellsAway==cell;
 	}
 };
 
