@@ -21,6 +21,13 @@ void optimizeIRTokensKnownVals(std::vector<IRToken*>& pIRTokensVec)
 		IRTokenClear *irClear = dynamic_cast<IRTokenClear*>(irToken);
 		if(irClear!=nullptr)
 		{
+			try
+			{
+				if(irClear->setVal==env.knownCells.at(irClear->cellsAway + curRelIndex))
+				{//Redundant clear.
+					pIRTokensVec[ti] = new IRTokenNoOp(pIRTokensVec[ti]);
+				}
+			}catch(std::out_of_range& oor){}
 			env.knownCells[irClear->cellsAway + curRelIndex]=irClear->setVal;
 		}
 		IRTokenMultiShift *mshift = dynamic_cast<IRTokenMultiShift*>(irToken);

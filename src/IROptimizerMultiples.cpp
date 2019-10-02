@@ -264,11 +264,8 @@ void optimizeIRTokensCombineAddsMults(std::vector<IRToken*>& pIRTokensVec)
 			IRTokenMultiply *irTokenMult = dynamic_cast<IRTokenMultiply*>(pIRTokensVec[i+1]);
 			if(irTokenMult!=nullptr && irTokenMult->cellsAway==irTokenClear->cellsAway && irTokenClear->setVal==0)
 			{
-				std::cout<<"irTokenClear#"<<irTokenClear->getIRTokenID()<<"->setVal="<<irTokenClear->setVal<<",";
-				std::cout<<"irTokenMult#"<<irTokenMult->getIRTokenID()<<"->add="<<irTokenMult->add<<", now:";
 				//irTokenMult->add+=irTokenClear->setVal;
 				irTokenMult->doSetVal=true;
-				std::cout<<"irTokenMult->add="<<irTokenMult->add<<"\n";
 				pIRTokensVec[i] = new IRTokenNoOp(pIRTokensVec[i]);
 			}
 		}
